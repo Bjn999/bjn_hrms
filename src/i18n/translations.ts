@@ -1,46 +1,38 @@
 export const translations = {
   ar: {
-      confirm_delete_year: "هل أنت متأكد من رغبتك في حذف هذه السنة المالية؟",
-      confirm_open_year: "عند فتح السنة المالية، سيتم إنشاء الشهور المالية الخاصة بها تلقائياً، هل تريد الاستمرار؟",
-      month: "الشهر",
-      days: "الأيام",
-      placeholder_search: "ابحث هنا...",
-      placeholder_search_code: "بحث بكود الموظف",
-      placeholder_search_name: "بحث باسم الموظف",
+    confirm_delete_year: "هل أنت متأكد من رغبتك في حذف هذه السنة المالية؟",
+    confirm_open_year: "عند فتح السنة المالية، سيتم إنشاء الشهور المالية الخاصة بها تلقائياً، هل تريد الاستمرار؟",
+    month: "الشهر",
+    days: "أيام",
+    placeholder_search: "ابحث هنا...",
+    placeholder_search_code: "بحث بكود الموظف",
+    placeholder_search_name: "بحث باسم الموظف",
 
-      financial_discounts: 'الخصومات المالية',
-      financial_rewards: 'المكافآت المالية',
+    financial_rewards: 'المكافآت المالية',
 
-      // Common Table Columns
-      employee_name: "اسم الموظف",
-      employee_code: "كود الموظف",
-      branch: "الفرع",
-      department: "الإدارة",
-      job: "الوظيفة",
-      amount: "المبلغ",
-      notes: "الملاحظات",
-      activation_status: "حالة التفعيل",
-      date: "التاريخ",
-      finance_month: "الشهر المالي",
-      value: "القيمة",
-      type: "النوع",
-      record_id: "رقم السجل",
-      archive_date: "تاريخ الأرشفة",
-      salary: "الراتب",
-      archive_date_time: "تاريخ ووقت الأرشفة",
-      no_data: "لا توجد بيانات",
-      search_placeholder_comprehensive: "بحث شامل (برقم الموظف، الاسم، الملاحظات، المبلغ، الإدارة، الفرع...)",
-      
-      // Common Terms
-      add: "إضافة",
-      error_occurred: "حدث خطأ ما",
-      
-      // Popups
-      confirm_delete_title: "تأكيد الحذف",
-      confirm_delete: "هل أنت متأكد من رغبتك في حذف هذا العنصر؟",
+    // Common Table Columns
+    amount: "المبلغ",
+    notes: "الملاحظات",
+    activation_status: "حالة التفعيل",
+    date: "التاريخ",
+    value: "القيمة",
+    type: "النوع",
+    record_id: "رقم السجل",
+    archive_date: "تاريخ الأرشفة",
+    archive_date_time: "تاريخ ووقت الأرشفة",
+    no_data: "لا توجد بيانات",
+    search_placeholder_comprehensive: "بحث شامل (برقم الموظف، الاسم، الملاحظات، المبلغ، الإدارة، الفرع...)",
 
-    currency: "رس",
+    // Common Terms
+    add: "إضافة",
+    error_occurred: "حدث خطأ ما",
+
+    // Popups
+    confirm_delete_title: "تأكيد الحذف",
+    confirm_delete: "هل أنت متأكد من الحذف؟",
+
     // Common
+    currency: "رس",
     save: "حفظ",
     update: "تحديث",
     delete: "حذف",
@@ -49,11 +41,11 @@ export const translations = {
     close: "إغلاق",
     search: "بحث",
     all: "الكل",
-    
+
     // Navigation
     salary_record: "سجلات الرواتب",
     employee_salaries: "رواتب الموظفين مفصلة",
-    
+
     yes: "نعم",
     no: "لا",
     status: "الحالة",
@@ -66,13 +58,13 @@ export const translations = {
     save_changes: "حفظ التعديلات",
     saving: "جاري الحفظ...",
     loading: "جاري التحميل...",
-    confirm_delete: "هل أنت متأكد من الحذف؟",
     fetch_failed: "فشل في جلب البيانات",
     conn_error: "خطأ في الاتصال بالخادم",
     update_error: "حدث خطأ أثناء الحفظ",
     select_option: "اختر من القائمة",
     save_success: "تم الحفظ بنجاح",
     update_success: "تم التحديث بنجاح",
+    delete_success: "تم الحذف بنجاح",
     not_updated: "لم يتم التحديث",
     added_by: "الاضافة",
     updated_by: "التحديث",
@@ -86,7 +78,7 @@ export const translations = {
     password_placeholder: "أدخل كلمة المرور",
     login_btn: "دخول",
     login_loading: "جاري التحقق...",
-    
+
     // Sidebar
     hrms: "HRMS",
     dashboard: "الرئيسية",
@@ -101,24 +93,24 @@ export const translations = {
     jobs_categories: "فئات الوظائف",
     qualifications: "مؤهلات الموظفين",
     employees_menu: "الموظفين",
-          rewards_types: "أنواع المكافآت المالية",
-      allowances_types: "أنواع البدلات",
-      discounts_types: "أنواع الخصومات",
-      loans_types: "أنواع السلف",
-      monthly_loans: "السلف الشهرية",
-      permanent_loans: "السلف المستدامة",
-      additional_days: "إضافي أيام",
-      variable_allowances: "البدلات المتغيرة",
-      salaries_menu: "الأجور والرواتب",
+    rewards_types: "أنواع المكافآت المالية",
+    allowances_types: "أنواع البدلات",
+    discounts_types: "أنواع الخصومات",
+    loans_types: "أنواع السلف",
+    monthly_loans: "السلف الشهرية",
+    permanent_loans: "السلف المستدامة",
+    additional_days: "إضافي أيام",
+    variable_allowances: "البدلات المتغيرة",
+    salaries_menu: "الأجور والرواتب",
     sanctions_days: "جزاءات الأيام",
     absences_days: "غياب الأيام",
     system_admin: "مدير النظام",
     online: "متصل الآن",
-    
+
     // Topbar
     logout: "خروج",
     general_manager: "مدير عام",
-    
+
     // Dashboard Home
     overview: "نظرة عامة",
     welcome: "مرحباً بك في لوحة تحكم نظام الموارد البشرية المتكامل",
@@ -128,7 +120,7 @@ export const translations = {
     pending_leave_requests: "طلبات إجازة معلقة",
     absences_today: "الغياب اليوم",
     charts_under_dev: "الرسوم البيانية والتقارير قيد التطوير...",
-    
+
     // General Settings
     general_settings_desc: "تكوين إعدادات النظام الأساسية، الحضور، الإجازات، والجزاءات",
     company_basic_info: "البيانات الأساسية للشركة",
@@ -155,7 +147,7 @@ export const translations = {
     fourth_time: "للمرة الرابعة",
     loading_settings: "جاري تحميل الإعدادات...",
     loading_dashboard: "جاري التحميل...",
-    
+
     // Finance Calendars
     finance_yr: "سنة مالية",
     finance_yr_desc: "وصف السنة",
@@ -169,7 +161,7 @@ export const translations = {
     closed: "مغلقة",
     finance_months: "الشهور المالية",
     open_confirm: "هل أنت متأكد من فتح هذه السنة المالية؟ لا يمكن التراجع",
-    
+
     // Branches
     branch: "الفرع",
     branch_name: "اسم الفرع",
@@ -180,7 +172,7 @@ export const translations = {
     add_branch: "إضافة فرع",
     edit_branch: "تعديل فرع",
     delete_branch: "حذف فرع",
-    
+
     // Shifts Types
     shift_type: "نوع الشفت",
     from_time: "من الساعة",
@@ -192,24 +184,23 @@ export const translations = {
     morning_shift: "صباحي",
     evening_shift: "مسائي",
     cannot_disable_used: "لا يمكن تعطيله لأنه مستخدم في بيانات النظام",
-    
+
     // Departments
     department: "الإدارة",
     department_name: "اسم الإدارة",
     department_phone: "هاتف الإدارة",
     department_address: "عنوان الإدارة",
-    notes: "ملاحظات",
     add_department: "إضافة إدارة",
     edit_department: "تعديل إدارة",
     delete_department: "حذف إدارة",
-    
+
     // Jobs Categories
     job_category: "فئة الوظيفة",
     job_category_name: "اسم الفئة",
     add_job_category: "إضافة فئة وظيفة",
     edit_job_category: "تعديل فئة وظيفة",
     delete_job_category: "حذف فئة وظيفة",
-    
+
     // Qualifications
     qualification: "المؤهل",
     qualification_name: "اسم المؤهل",
@@ -231,12 +222,15 @@ export const translations = {
     edit_additional_sal_type: "تعديل نوع إضافي",
     delete_additional_sal_type: "حذف نوع إضافي",
 
-    // Discount Sal Types
+    // Discounts
+    financial_discounts: 'الخصومات المالية',
     discount_sal_types: "أنواع الخصم",
     discount_sal_type_name: "اسم النوع",
     add_discount_sal_type: "إضافة نوع خصم",
     edit_discount_sal_type: "تعديل نوع خصم",
     delete_discount_sal_type: "حذف نوع خصم",
+    no_discounts_found: "لا توجد خصومات",
+    no_loans_found: "لا توجد سلف مسجلة",
 
     // Employees
     employees_list: "قائمة الموظفين",
@@ -332,7 +326,6 @@ export const translations = {
     medical_insurance_cut_monthly: "قيمة التأمين الشهري",
     is_active_for_vaccation: "له رصيد إجازات",
     hours: "ساعات",
-    days: "أيام",
 
     // Occasions
     occasions: "المناسبات الرسمية",
@@ -455,47 +448,39 @@ export const translations = {
     absence_deleted: "تم حذف الغياب بنجاح",
   },
   en: {
-      confirm_delete_year: "Are you sure you want to delete this financial year?",
-      confirm_open_year: "When opening the financial year, its financial months will be created automatically. Do you want to continue?",
-      month: "Month",
-      days: "Days",
-      placeholder_search: "Search here...",
-      placeholder_search_code: "Search by Employee Code",
-      placeholder_search_name: "Search by Employee Name",
+    confirm_delete_year: "Are you sure you want to delete this financial year?",
+    confirm_open_year: "When opening the financial year, its financial months will be created automatically. Do you want to continue?",
+    month: "Month",
+    days: "Days",
+    placeholder_search: "Search here...",
+    placeholder_search_code: "Search by Employee Code",
+    placeholder_search_name: "Search by Employee Name",
 
-      financial_discounts: 'Financial Discounts',
-      financial_rewards: 'Financial Rewards',
+    financial_rewards: 'Financial Rewards',
 
-      // Common Table Columns
-      employee_name: "Employee Name",
-      employee_code: "Employee Code",
-      branch: "Branch",
-      department: "Department",
-      job: "Job",
-      amount: "Amount",
-      notes: "Notes",
-      activation_status: "Activation Status",
-      date: "Date",
-      finance_month: "Financial Month",
-      value: "Value",
-      type: "Type",
-      record_id: "Record ID",
-      archive_date: "Archive Date",
-      salary: "Salary",
-      archive_date_time: "Archive Date & Time",
-      no_data: "No data found",
-      search_placeholder_comprehensive: "Comprehensive search (by Employee ID, Name, Notes, Amount, Dept, Branch...)",
-      
-      // Common Terms
-      add: "Add",
-      error_occurred: "An error occurred",
-      
-      // Popups
-      confirm_delete_title: "Confirm Deletion",
-      confirm_delete: "Are you sure you want to delete this item?",
+    // Common Table Columns
+    amount: "Amount",
+    notes: "Notes",
+    activation_status: "Activation Status",
+    date: "Date",
+    value: "Value",
+    type: "Type",
+    record_id: "Record ID",
+    archive_date: "Archive Date",
+    archive_date_time: "Archive Date & Time",
+    no_data: "No data found",
+    search_placeholder_comprehensive: "Comprehensive search (by Employee ID, Name, Notes, Amount, Dept, Branch...)",
 
-    currency: "SR",
+    // Common Terms
+    add: "Add",
+    error_occurred: "An error occurred",
+
+    // Popups
+    confirm_delete_title: "Confirm Deletion",
+    confirm_delete: "Are you sure you want to delete?",
+
     // Common
+    currency: "SR",
     save: "Save",
     update: "Update",
     delete: "Delete",
@@ -516,7 +501,6 @@ export const translations = {
     save_changes: "Save Changes",
     saving: "Saving...",
     loading: "Loading...",
-    confirm_delete: "Are you sure you want to delete?",
     fetch_failed: "Failed to fetch data",
     conn_error: "Connection error",
     update_error: "An error occurred while saving",
@@ -524,6 +508,7 @@ export const translations = {
     not_updated: "Not Updated",
     save_success: "Saved successfully",
     update_success: "Updated successfully",
+    delete_success: "Deleted successfully",
     added_by: "Added",
     updated_by: "Updated",
 
@@ -536,7 +521,7 @@ export const translations = {
     password_placeholder: "Enter password",
     login_btn: "Login",
     login_loading: "Verifying...",
-    
+
     // Sidebar
     hrms: "HRMS",
     dashboard: "Dashboard",
@@ -551,25 +536,25 @@ export const translations = {
     jobs_categories: "Jobs Categories",
     qualifications: "Qualifications",
     employees_menu: "Employees",
-          rewards_types: "Rewards Types",
-      allowances_types: "Allowances Types",
-      discounts_types: "Discounts Types",
-      loans_types: "Loans Types",
-      monthly_loans: "Monthly Loans",
-      permanent_loans: "Permanent Loans",
-      additional_days: "Additional Days",
-      variable_allowances: "Variable Allowances",
-      salaries_menu: "Payroll & Salaries",
+    rewards_types: "Rewards Types",
+    allowances_types: "Allowances Types",
+    discounts_types: "Discounts Types",
+    loans_types: "Loans Types",
+    monthly_loans: "Monthly Loans",
+    permanent_loans: "Permanent Loans",
+    additional_days: "Additional Days",
+    variable_allowances: "Variable Allowances",
+    salaries_menu: "Payroll & Salaries",
     salary_record: "Salary Records",
     sanctions_days: "Days Sanctions",
     absences_days: "Days Absences",
     system_admin: "System Admin",
     online: "Online",
-    
+
     // Topbar
     logout: "Logout",
     general_manager: "General Manager",
-    
+
     // Dashboard Home
     overview: "Overview",
     welcome: "Welcome to the Integrated HRMS Dashboard",
@@ -579,7 +564,7 @@ export const translations = {
     pending_leave_requests: "Pending Leave Requests",
     absences_today: "Absences Today",
     charts_under_dev: "Charts and reports are under development...",
-    
+
     // General Settings
     general_settings_desc: "Configure basic system settings, attendance, leaves, and sanctions",
     company_basic_info: "Company Basic Info",
@@ -606,7 +591,7 @@ export const translations = {
     fourth_time: "Fourth Time",
     loading_settings: "Loading settings...",
     loading_dashboard: "Loading...",
-    
+
     // Finance Calendars
     finance_yr: "Finance Year",
     finance_yr_desc: "Description",
@@ -620,7 +605,7 @@ export const translations = {
     closed: "Closed",
     finance_months: "Finance Months",
     open_confirm: "Are you sure you want to open this year? This cannot be undone.",
-    
+
     // Branches
     branch: "Branch",
     branch_name: "Branch Name",
@@ -631,7 +616,7 @@ export const translations = {
     add_branch: "Add Branch",
     edit_branch: "Edit Branch",
     delete_branch: "Delete Branch",
-    
+
     // Shifts Types
     shift_type: "Shift Type",
     from_time: "From Time",
@@ -643,24 +628,23 @@ export const translations = {
     morning_shift: "Morning",
     evening_shift: "Evening",
     cannot_disable_used: "Cannot be disabled because it is used in system records",
-    
+
     // Departments
     department: "Department",
     department_name: "Department Name",
     department_phone: "Department Phone",
     department_address: "Department Address",
-    notes: "Notes",
     add_department: "Add Department",
     edit_department: "Edit Department",
     delete_department: "Delete Department",
-    
+
     // Jobs Categories
     job_category: "Job Category",
     job_category_name: "Category Name",
     add_job_category: "Add Job Category",
     edit_job_category: "Edit Job Category",
     delete_job_category: "Delete Job Category",
-    
+
     // Qualifications
     qualification: "Qualification",
     qualification_name: "Qualification Name",
@@ -682,12 +666,15 @@ export const translations = {
     edit_additional_sal_type: "Edit Type",
     delete_additional_sal_type: "Delete Type",
 
-    // Discount Sal Types
+    // Discounts
+    financial_discounts: 'Financial Discounts',
     discount_sal_types: "Discount Salary Types",
     discount_sal_type_name: "Type Name",
     add_discount_sal_type: "Add Type",
     edit_discount_sal_type: "Edit Type",
     delete_discount_sal_type: "Delete Type",
+    no_discounts_found: "No discounts found",
+    no_loans_found: "No loans found",
 
     // Employees
     employees_list: "Employees List",
@@ -783,7 +770,6 @@ export const translations = {
     medical_insurance_cut_monthly: "Monthly Cut",
     is_active_for_vaccation: "Has Vacation Balance",
     hours: "Hours",
-    days: "Days",
 
     // Occasions
     occasions: "Occasions",

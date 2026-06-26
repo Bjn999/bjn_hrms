@@ -1,36 +1,86 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Bjn HRMs - واجهات نظام إدارة الموارد البشرية
 
-## Getting Started
+مرحباً بك في المستودع البرمجي الخاص بالواجهات الأمامية لنظام **Bjn HRMs**، وهو نظام متكامل وحديث لإدارة الموارد البشرية وشؤون الموظفين واحتساب الأجور والرواتب. تم بناء هذه الواجهات باستخدام أحدث تقنيات الويب لتوفر تجربة مستخدم سلسة، سريعة، ومتجاوبة بالكامل باللغة العربية مع دعم تخطيط اتجاه النص من اليمين إلى اليسار (RTL).
 
-First, run the development server:
+---
 
+## 🌟 الخدمات والميزات العامة للنظام (HRMs Services)
+
+يقدم نظام **Bjn HRMs** منظومة متكاملة من الخدمات الإدارية والمالية للمنشآت تشمل ما يلي:
+
+### 1. الإعدادات العامة والهيكل التنظيمي
+*   **إدارة الفروع (Branches):** إمكانية تعريف فروع المنشأة المتعددة وإدارتها.
+*   **إدارة الأقسام والإدارات (Departments):** بناء الهيكل الإداري للمنشأة وتوزيع الموظفين عليه.
+*   **إدارة فترات العمل (Shifts):** تهيئة فترات الدوام والمناوبات المختلفة وتحديد ساعات العمل.
+*   **تصنيفات الوظائف (Job Categories):** تعريف المسميات وفئات الوظائف المتنوعة.
+*   **المناسبات والعطل الرسمية (Occasions):** تسجيل الإجازات الرسمية والأعياد وربطها بالتقويم السنوي.
+*   **التهيئة الديموغرافية والجغرافية:** تعريف الجنسيات، الأديان، فصائل الدم، وتفاصيل الدول والمحافظات والمراكز لتسهيل فرز وتصنيف بيانات الموظفين.
+
+### 2. شؤون الموظفين وملفات الخدمة الذاتية (Employees Affairs)
+*   **ملف موظف شامل (Employee Profile):** إدارة بيانات الموظفين الشخصية، الوظيفية، والمالية في مكان واحد.
+*   **إدارة المستندات والمرفقات (Files Management):** إمكانية رفع وحفظ وتنزيل وثائق الموظف الرسمية كالهويات والعقود وغيرها.
+*   **البدلات الثابتة (Fixed Allowances):** ربط الموظف ببدلاته الشهرية الثابتة (مثل بدل السكن، بدل الانتقال) مباشرة مع إمكانية تعديلها.
+*   **الأرشيف التاريخي للرواتب:** استعراض سجل الرواتب المستلمة والمؤرشفة لكل موظف على مدار سنوات خدمته.
+*   **إدارة الاستقالات والتسويات:** معالجة إنهاء الخدمة وتسجيل أسباب الاستقالة (Resignations).
+
+### 3. العمليات المالية والحركات الشهرية (Payroll Operations)
+*   **الجزاءات والعقوبات (Sanctions):** احتساب الخصومات الناتجة عن المخالفات الإدارية وتطبيقها تلقائياً على راتب الموظف.
+*   **إدارة الغيابات (Absences):** تسجيل أيام الغياب غير المبرر وحساب أثرها المالي المباشر.
+*   **الخصومات المباشرة (Discounts):** تطبيق خصومات مالية استثنائية أو إدارية محددة القيمة.
+*   **الإضافات والمكافآت (Additions & Rewards):** إضافة مبالغ إضافية أو مكافآت تشجيعية للموظفين لتعزيز الإنتاجية.
+*   **نظام القروض والسلف (Loans):**
+    *   *السلف المؤقتة (Short-term Loans):* سلف تسدد لمرة واحدة من الراتب القادم.
+    *   *القروض المستديمة (Permanent Loans):* قروض طويلة الأجل تُقسط شهرياً، مع إمكانية جدولة الأقساط، وإيقاف الصرف مؤقتاً أو تسوية القرض بالكامل (Dismiss).
+
+### 4. دورة احتساب الرواتب والتقويم المالي (Salary & Fiscal Lifecycle)
+*   **التقويم المالي (Finance Calendars):** إعداد الفترات والسنوات المالية، وإدارة الأشهر المالية.
+*   **دورة الشهر المالي (Month Lifecycle):**
+    *   فتح الشهر المالي لبدء العمليات وإدخال الحركات اليومية.
+    *   إدخال تواريخ البصمة (Pasma Dates) لتطابق حضور وغياب الموظفين.
+    *   إغلاق الشهر المالي تمهيداً للصرف النهائي للرواتب لمنع أي تعديلات إضافية.
+*   **احتساب الرواتب (Salary Calculation):** احتساب تفصيلي تلقائي لراتب كل موظف يشمل: الراتب الأساسي + البدلات + الإضافات + المكافآت - (الخصومات + الغيابات + أقساط القروض والجزاءات).
+*   **التحكم بحالة الراتب:** إمكانية إيقاف راتب موظف محدد (Stop Salary) لأسباب إدارية، أو استئنافه (Resume) لاحقاً، وأرشفة الرواتب المحتسبة للتاريخ.
+
+---
+
+## 🛠️ التقنيات المستخدمة (Tech Stack)
+
+تم بناء الواجهات باستخدام حزمة تقنيات حديثة تضمن الاستقرار وسرعة الأداء:
+*   **Next.js 16 (App Router):** لإدارة المسارات وتحسين محركات البحث وسرعة التحميل.
+*   **React 19:** لبناء مكونات تفاعلية ديناميكية.
+*   **Tailwind CSS v4:** لبناء تصاميم عصرية، مرنة، وسريعة الاستجابة.
+*   **TypeScript:** لضمان سلامة الكود البرمجي وتقليل الأخطاء وقت التشغيل.
+*   **سياقات الحالة المخصصة (Contexts):**
+    *   `LanguageContext` لإدارة الترجمة واللغة (دعم اللغة العربية والاتجاه RTL).
+    *   `ToastContext` لعرض الإشعارات والتنبيهات التفاعلية الفورية.
+    *   `ConfirmContext` لعرض نوافذ التأكيد عند إجراء العمليات الحساسة (مثل الحذف أو الأرشفة).
+
+---
+
+## 🚀 تشغيل مشروع الواجهات محلياً
+
+اتبع الخطوات التالية لتشغيل المشروع في بيئة التطوير الخاصة بك:
+
+### 1. المتطلبات الأساسية
+تأكد من تثبيت بيئة تشغيل **Node.js** (الإصدار 18 أو أحدث) على جهازك.
+
+### 2. تثبيت الحزم البرمجية
+قم بالدخول إلى مجلد الواجهات وتثبيت الاعتماديات المطلوبة:
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+cd frontend
+npm install
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### 3. تشغيل خادم التطوير محلياً
+ابدأ تشغيل خادم التطوير المحلي:
+```bash
+npm run dev
+```
+بعد تشغيل الأمر، يمكنك الوصول للواجهات عبر المتصفح من خلال الرابط: [http://localhost:3000](http://localhost:3000).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+### 4. بناء المشروع للإنتاج
+لتهيئة وبناء نسخة صالحة للرفع والتشغيل الفعلي:
+```bash
+npm run build
+npm run start
+```

@@ -76,11 +76,6 @@ export default function PermanentLoansPrintPage() {
         <div className="text-left w-1/3">
           <p className="text-sm font-bold">تاريخ الطباعة: {new Date().toLocaleDateString('ar-EG')}</p>
           <p className="text-sm font-bold mt-1 mb-2">وقت الطباعة: {new Date().toLocaleTimeString('ar-EG')}</p>
-          {financeMonth && (
-            <p className="text-sm font-bold bg-gray-100 inline-block px-3 py-1 rounded-lg border border-gray-300">
-              للشهر المالي: {financeMonth.month?.name} لسنة {financeMonth.finance_yr}
-            </p>
-          )}
         </div>
       </div>
 
