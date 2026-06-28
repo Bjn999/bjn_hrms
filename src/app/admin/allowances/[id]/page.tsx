@@ -2,14 +2,25 @@
 
 import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import LoadingScreen from '@/components/ui/LoadingScreen';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useToast } from '@/contexts/ToastContext';
 import { useConfirm } from '@/contexts/ConfirmContext';
+import { FinanceMonth, Allowance, AllowanceType, Employee } from '@/types';
 
-const API = 'http://localhost:8000/api/admin';
+interface AllowanceItem extends Allowance {
+  allowances_id: number;
+}
+
+interface AllowanceEmployee {
+  employee_code?: string;
+  emp_name?: string;
+  employee?: Employee;
+}
+
+const API = process.env.NEXT_PUBLIC_API_URL || '';
 
 const emptyForm = {
   finance_month_period_id: '',
@@ -24,15 +35,14 @@ export default function EmployeeAllowancesDetailPage() {
   const { showToast } = useToast();
   const { confirm } = useConfirm();
   const params = useParams();
-  const router = useRouter();
   const monthId = params?.id as string;
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [financeMonth, setFinanceMonth] = useState<any>(null);
-  const [allowances, setAllowances] = useState<any[]>([]);
-  const [employees, setEmployees] = useState<any[]>([]);
-  const [types, setTypes] = useState<any[]>([]);
+  const [financeMonth, setFinanceMonth] = useState<FinanceMonth | null>(null);
+  const [allowances, setAllowances] = useState<AllowanceItem[]>([]);
+  const [employees, setEmployees] = useState<AllowanceEmployee[]>([]);
+  const [types, setTypes] = useState<AllowanceType[]>([]);
   const [isMonthOpen, setIsMonthOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -67,7 +77,13 @@ export default function EmployeeAllowancesDetailPage() {
     }
   };
 
-  useEffect(() => { fetchData(); }, []);
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      fetchData();
+    }, 0);
+    return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const openAddModal = () => {
     setEditingId(null);
@@ -75,15 +91,15 @@ export default function EmployeeAllowancesDetailPage() {
     setShowModal(true);
   };
 
-  const openEditModal = (a: any) => {
+  const openEditModal = (a: AllowanceItem) => {
     if (a.is_archived == 1) { showToast(t('cannot_edit_archived'), 'error'); return; }
     if (!isMonthOpen) { showToast(t('cannot_edit_closed'), 'error'); return; }
     setEditingId(a.id);
     setForm({
       finance_month_period_id: monthId,
       employee_code: a.employee_code,
-      allowances_id: a.allowances_id,
-      total: a.total,
+      allowances_id: String(a.allowances_id || ''),
+      total: String(a.total || ''),
       notes: a.notes || '',
     });
     setShowModal(true);
@@ -100,7 +116,7 @@ export default function EmployeeAllowancesDetailPage() {
     }
 
     if (!editingId) {
-      const exists = allowances.some((a: any) => String(a.employee_code) === String(form.employee_code) && String(a.allowances_id) === String(form.allowances_id));
+      const exists = allowances.some((a: AllowanceItem) => String(a.employee_code) === String(form.employee_code) && String(a.allowances_id) === String(form.allowances_id));
       if (exists) {
         const ok = await confirm({ title: 'تنبيه', description: 'هذا الموظف لديه هذا البدل في نفس الشهر. هل تريد الإضافة على أي حال؟', icon: 'warning' });
         if (!ok) return;
@@ -131,7 +147,7 @@ export default function EmployeeAllowancesDetailPage() {
     }
   };
 
-  const handleDelete = async (a: any) => {
+  const handleDelete = async (a: AllowanceItem) => {
     if (a.is_archived == 1) { showToast(t('cannot_delete_archived'), 'error'); return; }
     if (!isMonthOpen) { showToast(t('cannot_delete_closed'), 'error'); return; }
     const ok = await confirm({ title: t('confirm_delete'), description: 'هل أنت متأكد من حذف البدل؟', icon: 'danger' });
@@ -146,19 +162,19 @@ export default function EmployeeAllowancesDetailPage() {
     }
   };
 
-  const filteredAllowances = allowances.filter((a: any) => {
+  const filteredAllowances = allowances.filter((a: AllowanceItem) => {
     if (!searchQuery) return true;
     const query = searchQuery.toLowerCase();
     const empName = a.employee?.emp_name?.toLowerCase() || '';
     const empCode = a.employee_code?.toString() || '';
     const notes = a.notes?.toLowerCase() || '';
     const total = a.total?.toString() || '';
-    const typeObj = types.find((t: any) => t.id === a.allowances_id);
+    const typeObj = types.find((t: AllowanceType) => t.id === a.allowances_id);
     const typeName = typeObj?.name?.toLowerCase() || '';
     return empName.includes(query) || empCode.includes(query) || notes.includes(query) || total.includes(query) || typeName.includes(query);
   });
 
-  const total = filteredAllowances.reduce((sum: number, a: any) => sum + parseFloat(a.total || 0), 0);
+  const total = filteredAllowances.reduce((sum: number, a: AllowanceItem) => sum + parseFloat((a.total || 0).toString()), 0);
 
   if (loading) return <LoadingScreen />;
 
@@ -263,12 +279,12 @@ export default function EmployeeAllowancesDetailPage() {
               </tr>
             </thead>
             <tbody>
-              {filteredAllowances.map((a: any) => {
+              {filteredAllowances.map((a: AllowanceItem) => {
                 const isArchived = a.is_archived == 1;
                 const canAct = isMonthOpen && !isArchived;
-                const emp = employees.find((e: any) => String(e.employee_code) === String(a.employee_code));
+                const emp = employees.find((e: AllowanceEmployee) => String(e.employee_code) === String(a.employee_code));
                 const empName = a.employee?.emp_name || emp?.emp_name || a.employee_code;
-                const typeName = types.find((t: any) => t.id == a.allowances_id)?.name || 'غير محدد';
+                const typeName = types.find((t: AllowanceType) => t.id == a.allowances_id)?.name || 'غير محدد';
                 
                 return (
                   <tr key={a.id} className={`border-b border-slate-50 transition-colors ${isArchived ? 'opacity-60 bg-slate-50/30' : 'hover:bg-slate-50/50'}`}>
@@ -292,14 +308,14 @@ export default function EmployeeAllowancesDetailPage() {
                     <td className="px-5 py-4 font-bold text-purple-600 bg-purple-50/30 rounded-xl">
                       {typeName}
                     </td>
-                    <td className="px-5 py-4 font-bold text-emerald-600 text-base">{parseFloat(a.total).toFixed(2)}</td>
+                    <td className="px-5 py-4 font-bold text-emerald-600 text-base">{a.total.toFixed(2)}</td>
                     <td className="px-5 py-4 text-xs font-bold text-slate-500">
                       <div>{new Date(a.created_at).toLocaleDateString('ar-SA')}</div>
                       <div>{new Date(a.created_at).toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' })}</div>
                       <div className="text-emerald-600 mt-1">{a.added?.name}</div>
                     </td>
                     <td className="px-5 py-4 text-xs font-bold text-slate-500">
-                      {a.updated_by > 0 && a.updated_at ? (
+                      {a.updated_by && a.updated_by > 0 && a.updated_at ? (
                         <>
                           <div>{new Date(a.updated_at).toLocaleDateString('ar-SA')}</div>
                           <div>{new Date(a.updated_at).toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' })}</div>
@@ -366,7 +382,7 @@ export default function EmployeeAllowancesDetailPage() {
                   className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none text-slate-700 font-bold focus:ring-2 focus:ring-purple-500/20"
                 >
                   <option value="">{t('select_employee')}</option>
-                  {employees.map((e: any) => (
+                  {employees.map((e: AllowanceEmployee) => (
                     <option key={e.employee_code} value={e.employee_code}>
                       {e.emp_name}
                     </option>
@@ -381,7 +397,7 @@ export default function EmployeeAllowancesDetailPage() {
                   className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none text-slate-700 font-bold focus:ring-2 focus:ring-purple-500/20"
                 >
                   <option value="">اختر نوع البدل</option>
-                  {types.map((t: any) => (
+                  {types.map((t: AllowanceType) => (
                     <option key={t.id} value={t.id}>{t.name}</option>
                   ))}
                 </select>

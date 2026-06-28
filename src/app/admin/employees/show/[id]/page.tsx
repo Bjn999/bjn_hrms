@@ -7,6 +7,48 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { useToast } from '@/contexts/ToastContext';
 import { useConfirm } from '@/contexts/ConfirmContext';
 import LoadingScreen from '@/components/ui/LoadingScreen';
+import { Employee, AllowanceType } from '@/types';
+
+interface FixedAllowanceItem {
+  id: number;
+  allowance_id: number | string;
+  value: number | string;
+  allowance?: {
+    name: string;
+  };
+  created_at?: string;
+  added?: {
+    name: string;
+  };
+}
+
+interface EmployeeShowData extends Omit<Employee, 'job' | 'social_status' | 'driving_license_type'> {
+  nationality?: { name: string };
+  religion?: { name: string };
+  blood_group?: { name: string };
+  social_status?: { name: string };
+  branch?: { name: string };
+  department?: { name: string };
+  job?: { name: string };
+  qualification?: { name: string };
+  country?: { name: string };
+  governorate?: { name: string };
+  city?: { name: string };
+  shift?: { type: number; from_time: string; to_time: string };
+  resignation?: { name: string };
+  driving_license_type?: { name: string };
+  fixed_allowances?: FixedAllowanceItem[];
+  files?: Array<{ id: number; name: string; file_path: string; created_at: string }>;
+}
+
+interface SalaryArchiveItem {
+  id: number;
+  created_at: string;
+  value: number | string;
+  added?: {
+    name: string;
+  };
+}
 
 export default function ShowEmployeePage() {
   const router = useRouter();
@@ -16,8 +58,8 @@ export default function ShowEmployeePage() {
   const { confirm } = useConfirm();
   
   const [loading, setLoading] = useState(true);
-  const [data, setData] = useState<any>(null);
-  const [allowancesList, setAllowancesList] = useState<any[]>([]);
+  const [data, setData] = useState<EmployeeShowData | null>(null);
+  const [allowancesList, setAllowancesList] = useState<AllowanceType[]>([]);
   const [showModal, setShowModal] = useState(false);
   const [modalMode, setModalMode] = useState<'add' | 'edit'>('add');
   const [editingAllowanceId, setEditingAllowanceId] = useState<number | null>(null);
@@ -26,22 +68,18 @@ export default function ShowEmployeePage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   
   const [showSalaryArchiveModal, setShowSalaryArchiveModal] = useState(false);
-  const [salaryArchiveData, setSalaryArchiveData] = useState([]);
+  const [salaryArchiveData, setSalaryArchiveData] = useState<SalaryArchiveItem[]>([]);
   
   const [showFileModal, setShowFileModal] = useState(false);
-  const [fileFormData, setFileFormData] = useState<{name: string, file_path: any}>({ name: '', file_path: null });
+  const [fileFormData, setFileFormData] = useState<{name: string; file_path: File | null}>({ name: '', file_path: null });
   const [isFileSubmitting, setIsFileSubmitting] = useState(false);
-
-  useEffect(() => {
-    fetchData();
-  }, []);
 
   const fetchData = async () => {
     try {
       const token = localStorage.getItem('admin_token');
       
       // Fetch employee details
-      const res = await fetch(`http://localhost:8000/api/admin/employees/${id}`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || ''}/employees/${id}`, {
         headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/json' }
       });
       const result = await res.json();
@@ -53,21 +91,29 @@ export default function ShowEmployeePage() {
       }
 
       // Fetch active allowances for the modal
-      const settingsRes = await fetch('http://localhost:8000/api/admin/employees/required-data', {
+      const settingsRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL || ''}/employees/required-data`, {
         headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/json' }
       });
       const settingsResult = await settingsRes.json();
       if (settingsResult.status) {
         setAllowancesList(settingsResult.data.allowances || []);
       }
-    } catch (e) {
+    } catch {
       showToast(t('fetch_failed'), 'error');
     } finally {
       setLoading(false);
     }
   };
 
-  const handleOpenModal = (mode: 'add' | 'edit', item: any = null) => {
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      fetchData();
+    }, 0);
+    return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const handleOpenModal = (mode: 'add' | 'edit', item: FixedAllowanceItem | null = null) => {
     setModalMode(mode);
     if (mode === 'edit' && item) {
       setEditingAllowanceId(item.id);
@@ -81,7 +127,7 @@ export default function ShowEmployeePage() {
     setShowModal(true);
   };
 
-  const handleSubmitAllowance = async (e: any) => {
+  const handleSubmitAllowance = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!modalAllowanceId || !modalValue) {
       showToast(t('select_option'), 'error');
@@ -89,7 +135,7 @@ export default function ShowEmployeePage() {
     }
 
     if (modalMode === 'add') {
-      const isDuplicate = data?.fixed_allowances?.some((item: any) => String(item.allowance_id) === String(modalAllowanceId));
+      const isDuplicate = data?.fixed_allowances?.some((item: FixedAllowanceItem) => String(item.allowance_id) === String(modalAllowanceId));
       if (isDuplicate) {
         showToast(language === 'ar' ? 'عفواً هذا البدل مسجل لهذا الموظف من قبل' : 'Allowance already exists for this employee', 'error');
         return;
@@ -100,8 +146,8 @@ export default function ShowEmployeePage() {
     try {
       const token = localStorage.getItem('admin_token');
       const url = modalMode === 'add' 
-        ? `http://localhost:8000/api/admin/employees/${id}/fixed-allowances`
-        : `http://localhost:8000/api/admin/employees/fixed-allowances/${editingAllowanceId}`;
+        ? `${process.env.NEXT_PUBLIC_API_URL || ''}/employees/${id}/fixed-allowances`
+        : `${process.env.NEXT_PUBLIC_API_URL || ''}/employees/fixed-allowances/${editingAllowanceId}`;
       
       const res = await fetch(url, {
         method: modalMode === 'add' ? 'POST' : 'PUT',
@@ -123,7 +169,7 @@ export default function ShowEmployeePage() {
       } else {
         showToast(result.message, 'error');
       }
-    } catch (err) {
+    } catch {
       showToast(t('update_error'), 'error');
     } finally {
       setIsSubmitting(false);
@@ -141,7 +187,7 @@ export default function ShowEmployeePage() {
 
     try {
       const token = localStorage.getItem('admin_token');
-      const res = await fetch(`http://localhost:8000/api/admin/employees/fixed-allowances/${allowanceId}`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || ''}/employees/fixed-allowances/${allowanceId}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -155,7 +201,7 @@ export default function ShowEmployeePage() {
       } else {
         showToast(result.message, 'error');
       }
-    } catch (err) {
+    } catch {
       showToast(t('update_error'), 'error');
     }
   };
@@ -163,7 +209,7 @@ export default function ShowEmployeePage() {
   const fetchSalaryArchive = async () => {
     try {
       const token = localStorage.getItem('admin_token');
-      const res = await fetch(`http://localhost:8000/api/admin/employees/${id}/salary-archive`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || ''}/employees/${id}/salary-archive`, {
         headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/json' }
       });
       const result = await res.json();
@@ -173,7 +219,7 @@ export default function ShowEmployeePage() {
       } else {
         showToast(result.message || t('fetch_failed'), 'error');
       }
-    } catch (error) {
+    } catch {
       showToast(t('conn_error'), 'error');
     }
   };
@@ -191,7 +237,7 @@ export default function ShowEmployeePage() {
       payload.append('name', fileFormData.name);
       payload.append('file_path', fileFormData.file_path);
 
-      const res = await fetch(`http://localhost:8000/api/admin/employees/${id}/files`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || ''}/employees/${id}/files`, {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/json' },
         body: payload
@@ -205,7 +251,7 @@ export default function ShowEmployeePage() {
       } else {
         showToast(result.message, 'error');
       }
-    } catch (err) {
+    } catch {
       showToast('حدث خطأ في الاتصال', 'error');
     } finally {
       setIsFileSubmitting(false);
@@ -222,7 +268,7 @@ export default function ShowEmployeePage() {
 
     try {
       const token = localStorage.getItem('admin_token');
-      const res = await fetch(`http://localhost:8000/api/admin/employees/files/${fileId}`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || ''}/employees/files/${fileId}`, {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/json' }
       });
@@ -233,14 +279,14 @@ export default function ShowEmployeePage() {
       } else {
         showToast(result.message, 'error');
       }
-    } catch (err) {
+    } catch {
       showToast('حدث خطأ في الاتصال', 'error');
     }
   };
 
   const handleDownloadFile = async (fileName: string) => {
     try {
-      const url = `http://localhost:8000/assets/admin/uploads/${fileName}`;
+      const url = `${process.env.NEXT_PUBLIC_UPLOAD_URL || ''}/${fileName}`;
       const response = await fetch(url);
       const blob = await response.blob();
       const downloadUrl = window.URL.createObjectURL(blob);
@@ -251,8 +297,8 @@ export default function ShowEmployeePage() {
       link.click();
       document.body.removeChild(link);
       window.URL.revokeObjectURL(downloadUrl);
-    } catch(e) {
-      window.open(`http://localhost:8000/assets/admin/uploads/${fileName}`, '_blank');
+    } catch {
+      window.open(`${process.env.NEXT_PUBLIC_UPLOAD_URL || ''}/${fileName}`, '_blank');
     }
   };
 
@@ -267,7 +313,7 @@ export default function ShowEmployeePage() {
       <div className="flex justify-between items-center mb-8">
         <div className="flex items-center gap-4">
           {data.emp_photo ? (
-            <img src={`http://localhost:8000/assets/admin/uploads/${data.emp_photo}`} alt={data.emp_name} className="w-16 h-16 rounded-2xl object-cover shadow-lg shadow-indigo-200 border-2 border-white" />
+            <img src={`${process.env.NEXT_PUBLIC_UPLOAD_URL || ''}/${data.emp_photo}`} alt={data.emp_name} className="w-16 h-16 rounded-2xl object-cover shadow-lg shadow-indigo-200 border-2 border-white" />
           ) : (
             <div className="w-16 h-16 rounded-2xl bg-indigo-600 flex items-center justify-center text-white text-2xl font-black shadow-lg shadow-indigo-200">
               {data.emp_name.charAt(0)}
@@ -364,11 +410,11 @@ export default function ShowEmployeePage() {
               <div>
                 <p className={labelClass}>{t('graduation_estimate')}</p>
                 <p className={valueClass}>
-                  {data.graduation_estimate == 1 ? 'مقبول' : 
-                   data.graduation_estimate == 2 ? 'جيد' :
-                   data.graduation_estimate == 3 ? 'جيد مرتفع' :
-                   data.graduation_estimate == 4 ? 'جيد جداً' :
-                   data.graduation_estimate == 5 ? 'إمتياز' : '---'}
+                  {Number(data.graduation_estimate) == 1 ? 'مقبول' : 
+                   Number(data.graduation_estimate) == 2 ? 'جيد' :
+                   Number(data.graduation_estimate) == 3 ? 'جيد مرتفع' :
+                   Number(data.graduation_estimate) == 4 ? 'جيد جداً' :
+                   Number(data.graduation_estimate) == 5 ? 'إمتياز' : '---'}
                 </p>
               </div>
               <div className="col-span-full">
@@ -533,12 +579,12 @@ export default function ShowEmployeePage() {
                         </tr>
                       </thead>
                       <tbody>
-                        {data.fixed_allowances.map((item: any) => (
+                        {data.fixed_allowances.map((item: FixedAllowanceItem) => (
                           <tr key={item.id} className="border-b border-slate-100 hover:bg-slate-50/50 transition-all text-slate-700 font-semibold text-sm">
                             <td className="p-4">{item.allowance?.name}</td>
                             <td className="p-4 text-indigo-600 font-black">{item.value} {t('currency')}</td>
                             <td className="p-4 text-xs text-slate-400">
-                              {new Date(item.created_at).toLocaleDateString(language === 'ar' ? 'ar-EG' : 'en-US')} - {item.added?.name}
+                              {item.created_at ? new Date(item.created_at).toLocaleDateString(language === 'ar' ? 'ar-EG' : 'en-US') : '---'} - {item.added?.name || '---'}
                             </td>
                             <td className="p-4 text-center">
                               <div className="flex items-center justify-center gap-2">
@@ -695,19 +741,19 @@ export default function ShowEmployeePage() {
                   <button 
                     onClick={async () => {
                       try {
-                        const url = `http://localhost:8000/assets/admin/uploads/${data.emp_cv}`;
+                        const url = `${process.env.NEXT_PUBLIC_UPLOAD_URL || ''}/${data.emp_cv}`;
                         const response = await fetch(url);
                         const blob = await response.blob();
                         const downloadUrl = window.URL.createObjectURL(blob);
                         const link = document.createElement('a');
                         link.href = downloadUrl;
-                        link.download = data.emp_cv;
+                        link.download = data.emp_cv || 'cv';
                         document.body.appendChild(link);
                         link.click();
                         document.body.removeChild(link);
                         window.URL.revokeObjectURL(downloadUrl);
-                      } catch(e) {
-                        window.open(`http://localhost:8000/assets/admin/uploads/${data.emp_cv}`, '_blank');
+                      } catch {
+                        window.open(`${process.env.NEXT_PUBLIC_UPLOAD_URL || ''}/${data.emp_cv || ''}`, '_blank');
                       }
                     }}
                     className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-xl transition-all font-bold text-sm shadow-md shadow-indigo-100"
@@ -746,7 +792,7 @@ export default function ShowEmployeePage() {
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100">
-                      {data.files.map((file: any) => (
+                      {data.files.map((file: { id: number; name: string; file_path: string; created_at: string }) => (
                         <tr key={file.id} className="hover:bg-slate-50/50 transition-colors">
                           <td className="p-4">
                             <p className="font-bold text-slate-800">{file.name}</p>
@@ -904,7 +950,7 @@ export default function ShowEmployeePage() {
              </div>
              <div className="flex justify-between items-center text-xs">
                 <span className="font-bold text-slate-500">{t('created_at')}:</span>
-                <span className="font-black text-slate-700">{new Date(data.created_at).toLocaleString(language === 'ar' ? 'ar-EG' : 'en-US')}</span>
+                <span className="font-black text-slate-700">{data.created_at ? new Date(data.created_at).toLocaleString(language === 'ar' ? 'ar-EG' : 'en-US') : '---'}</span>
              </div>
              {data.updatedby && (
                <div className="flex justify-between items-center text-xs pt-2 border-t border-slate-200">
@@ -945,7 +991,7 @@ export default function ShowEmployeePage() {
                   disabled={modalMode === 'edit'}
                 >
                   <option value="">{t('select_option')}</option>
-                  {allowancesList.map((item: any) => (
+                  {allowancesList.map((item: AllowanceType) => (
                     <option key={item.id} value={String(item.id)}>
                       {item.name}
                     </option>
@@ -1013,7 +1059,7 @@ export default function ShowEmployeePage() {
                       </tr>
                     </thead>
                     <tbody>
-                      {salaryArchiveData.map((item: any) => (
+                      {salaryArchiveData.map((item: SalaryArchiveItem) => (
                         <tr key={item.id} className="border-b border-slate-50 hover:bg-slate-50/50">
                           <td className="px-4 py-3 text-xs text-slate-500 font-medium">{new Date(item.created_at).toLocaleString(language === 'ar' ? 'ar-EG' : 'en-US', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit' })}</td>
                           <td className="px-4 py-3 font-bold text-indigo-600">{item.value}</td>

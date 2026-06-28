@@ -7,8 +7,39 @@ import LoadingScreen from '@/components/ui/LoadingScreen';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useToast } from '@/contexts/ToastContext';
 import { useConfirm } from '@/contexts/ConfirmContext';
+import { Employee } from '@/types';
 
-const API = 'http://localhost:8000/api/admin';
+interface PermanentLoan {
+  id: number;
+  employee_code: string;
+  emp_sal: number;
+  total: number;
+  months_number: number;
+  monthly_installment_value: number;
+  year_and_month_start_date: string;
+  notes?: string;
+  is_archived: number;
+  is_dismissal: number;
+  created_at: string;
+  employee?: Employee;
+  added?: { name: string };
+  updatedby?: { name: string };
+  updated_at?: string;
+}
+
+interface Installment {
+  id: number;
+  permanent_loan_id: number;
+  year_and_month: string;
+  total: number;
+  is_archived: number;
+  created_at: string;
+  added?: { name: string };
+  status?: number;
+  monthly_installment_value?: number | string;
+}
+
+const API = process.env.NEXT_PUBLIC_API_URL || '';
 
 const emptyForm = {
   employee_code: '',
@@ -27,8 +58,8 @@ export default function PermanentLoansPage() {
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [loans, setLoans] = useState<any[]>([]);
-  const [employees, setEmployees] = useState<any[]>([]);
+  const [loans, setLoans] = useState<PermanentLoan[]>([]);
+  const [employees, setEmployees] = useState<Employee[]>([]);
 
   // Search
   const [searchQuery, setSearchQuery] = useState('');
@@ -40,8 +71,8 @@ export default function PermanentLoansPage() {
 
   // Installments Modal
   const [showInstModal, setShowInstModal] = useState(false);
-  const [installments, setInstallments] = useState<any[]>([]);
-  const [activeLoan, setActiveLoan] = useState<any>(null);
+  const [installments, setInstallments] = useState<Installment[]>([]);
+  const [activeLoan, setActiveLoan] = useState<PermanentLoan | null>(null);
   const [loadingInst, setLoadingInst] = useState(false);
 
   const headers = () => ({
@@ -68,7 +99,11 @@ export default function PermanentLoansPage() {
   };
 
   useEffect(() => {
-    fetchData();
+    const timer = setTimeout(() => {
+      fetchData();
+    }, 0);
+    return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const openAddModal = () => {
@@ -77,16 +112,16 @@ export default function PermanentLoansPage() {
     setShowModal(true);
   };
 
-  const openEditModal = (a: any) => {
+  const openEditModal = (a: PermanentLoan) => {
     if (a.is_archived == 1) { showToast('لا يمكن تعديل سلفة مؤرشفة', 'error'); return; }
     if (a.is_dismissal == 1) { showToast('لا يمكن تعديل سلفة تم صرفها', 'error'); return; }
     setEditingId(a.id);
     setForm({
       employee_code: a.employee_code,
-      emp_sal: a.emp_sal,
-      total: a.total,
-      months_number: a.months_number,
-      monthly_installment_value: a.monthly_installment_value,
+      emp_sal: String(a.emp_sal),
+      total: String(a.total),
+      months_number: String(a.months_number),
+      monthly_installment_value: String(a.monthly_installment_value),
       year_and_month_start_date: a.year_and_month_start_date,
       notes: a.notes || '',
     });
@@ -100,7 +135,7 @@ export default function PermanentLoansPage() {
     }
 
     if (!editingId) {
-      const exists = loans.some((a: any) => String(a.employee_code) === String(form.employee_code) && a.is_dismissal == 0);
+      const exists = loans.some((a: PermanentLoan) => String(a.employee_code) === String(form.employee_code) && a.is_dismissal == 0);
       if (exists) {
         const ok = await confirm({ title: 'تنبيه', description: 'هذا الموظف لديه سلفة مستدامة أخرى قيد الانتظار لم يتم صرفها. هل تريد الإضافة على أي حال؟', icon: 'warning' });
         if (!ok) return;
@@ -127,7 +162,7 @@ export default function PermanentLoansPage() {
     }
   };
 
-  const handleDelete = async (a: any) => {
+  const handleDelete = async (a: PermanentLoan) => {
     if (a.is_archived == 1) { showToast('لا يمكن حذف سلفة مؤرشفة', 'error'); return; }
     if (a.is_dismissal == 1) { showToast('لا يمكن حذف سلفة تم صرفها', 'error'); return; }
     const ok = await confirm({ title: t('confirm_delete'), description: 'هل أنت متأكد من حذف السلفة المستدامة؟ سيتم حذف كافة الأقساط المرتبطة بها.', icon: 'danger' });
@@ -142,7 +177,7 @@ export default function PermanentLoansPage() {
     }
   };
 
-  const handleDismiss = async (a: any) => {
+  const handleDismiss = async (a: PermanentLoan) => {
     if (a.is_archived == 1) { showToast('تم أرشفة هذه السلفة', 'error'); return; }
     if (a.is_dismissal == 1) { showToast('تم صرف هذه السلفة مسبقاً', 'error'); return; }
     const ok = await confirm({ title: 'اعتماد الصرف', description: 'هل أنت متأكد من صرف هذه السلفة؟ لا يمكن التراجع أو التعديل بعد الصرف وسيبدأ الخصم من الرواتب.', icon: 'warning' });
@@ -157,7 +192,7 @@ export default function PermanentLoansPage() {
     }
   };
 
-  const openInstallments = async (a: any) => {
+  const openInstallments = async (a: PermanentLoan) => {
     setActiveLoan(a);
     setShowInstModal(true);
     setLoadingInst(true);
@@ -177,8 +212,8 @@ export default function PermanentLoansPage() {
   };
 
   const handleEmployeeChange = (code: string) => {
-    const emp = employees.find((e: any) => e.employee_code == code);
-    setForm(f => ({ ...f, employee_code: code, emp_sal: emp?.emp_sal || '' }));
+    const emp = employees.find((e: Employee) => e.employee_code == code);
+    setForm(f => ({ ...f, employee_code: code, emp_sal: emp?.emp_sal ? String(emp.emp_sal) : '' }));
   };
 
   const handleTotalChange = (total: string) => {
@@ -195,7 +230,7 @@ export default function PermanentLoansPage() {
     setForm(f => ({ ...f, months_number: months, monthly_installment_value: install }));
   };
 
-  const filteredLoans = loans.filter((a: any) => {
+  const filteredLoans = loans.filter((a: PermanentLoan) => {
     if (!searchQuery) return true;
     const query = searchQuery.toLowerCase();
     const empName = a.employee?.emp_name?.toLowerCase() || '';
@@ -207,7 +242,7 @@ export default function PermanentLoansPage() {
     return empName.includes(query) || empCode.includes(query) || notes.includes(query) || total.includes(query) || isDismissal.includes(query) || isArchived.includes(query);
   });
 
-  const totalAmount = filteredLoans.reduce((s: number, a: any) => s + parseFloat(a.total || 0), 0);
+  const totalAmount = filteredLoans.reduce((s: number, a: PermanentLoan) => s + (a.total || 0), 0);
 
   if (loading) return <LoadingScreen />;
 
@@ -297,11 +332,11 @@ export default function PermanentLoansPage() {
               </tr>
             </thead>
             <tbody>
-              {filteredLoans.map((a: any) => {
+              {filteredLoans.map((a: PermanentLoan) => {
                 const isArchived = a.is_archived == 1;
                 const isDismissed = a.is_dismissal == 1;
                 const canAct = !isArchived && !isDismissed;
-                const emp = employees.find((e: any) => String(e.employee_code) === String(a.employee_code));
+                const emp = employees.find((e: Employee) => String(e.employee_code) === String(a.employee_code));
                 const empName = a.employee?.emp_name || emp?.emp_name || a.employee_code;
 
                 return (
@@ -324,14 +359,14 @@ export default function PermanentLoansPage() {
                       )}
                     </td>
                     <td className="px-5 py-4">
-                      <div className="font-bold text-indigo-600 text-base">{parseFloat(a.total).toFixed(2)}</div>
-                      <div className="text-xs text-emerald-600 mt-1">بدء الخصم: {a.year_and_month_start}</div>
+                      <div className="font-bold text-indigo-600 text-base">{parseFloat(String(a.total)).toFixed(2)}</div>
+                      <div className="text-xs text-emerald-600 mt-1">بدء الخصم: {a.year_and_month_start_date}</div>
                     </td>
                     <td className="px-5 py-4 font-bold text-slate-600">
                       {a.months_number}
                     </td>
                     <td className="px-5 py-4 font-bold text-rose-600">
-                      {parseFloat(a.monthly_installment_value).toFixed(2)}
+                      {parseFloat(String(a.monthly_installment_value)).toFixed(2)}
                     </td>
                     <td className="px-5 py-4">
                       {isDismissed ? (
@@ -430,7 +465,7 @@ export default function PermanentLoansPage() {
                     className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none text-slate-700 font-bold focus:ring-2 focus:ring-indigo-500/20"
                   >
                     <option value="">{t('select_employee')}</option>
-                    {employees.map((e: any) => (
+                    {employees.map((e: Employee) => (
                       <option key={e.employee_code} value={e.employee_code}>{e.emp_name}</option>
                     ))}
                   </select>
@@ -537,7 +572,7 @@ export default function PermanentLoansPage() {
                     </tr>
                   </thead>
                   <tbody>
-                    {installments.map((inst: any, idx: number) => {
+                    {installments.map((inst: Installment) => {
                       const isPaid = inst.status == 1; // 1: مدفوع
                       return (
                         <tr key={inst.id} className="border-b border-slate-50 hover:bg-slate-50/50 transition-colors">
@@ -545,7 +580,7 @@ export default function PermanentLoansPage() {
                             {inst.year_and_month}
                           </td>
                           <td className="px-5 py-4 font-bold text-indigo-600">
-                            {parseFloat(inst.monthly_installment_value).toFixed(2)}
+                            {parseFloat(String(inst.monthly_installment_value || 0)).toFixed(2)}
                           </td>
                           <td className="px-5 py-4">
                             {isPaid ? (

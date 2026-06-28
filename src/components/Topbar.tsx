@@ -1,29 +1,34 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 
 import { useLanguage } from '@/contexts/LanguageContext';
 
 export default function Topbar() {
   const router = useRouter();
   const { t, language, setLanguage } = useLanguage();
-  const [adminName, setAdminName] = useState(t('system_admin'));
-
-  useEffect(() => {
-    const userStr = localStorage.getItem('admin_user');
-    if (userStr) {
-      const user = JSON.parse(userStr);
-      if (user.name) setAdminName(user.name);
+  const [adminName] = useState<string>(() => {
+    if (typeof window !== 'undefined') {
+      const userStr = localStorage.getItem('admin_user');
+      if (userStr) {
+        try {
+          const user = JSON.parse(userStr);
+          if (user.name) return user.name;
+        } catch (e) {
+          console.error(e);
+        }
+      }
     }
-  }, [t]);
+    return '';
+  });
 
   const handleLogout = async () => {
     // ... logout code ...
     const token = localStorage.getItem('admin_token');
     if (token) {
       try {
-        await fetch('http://localhost:8000/api/logout', {
+        await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || ''}/api/logout`, {
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${token}`,
@@ -70,11 +75,11 @@ export default function Topbar() {
 
         <div className="flex items-center gap-3">
           <div className="flex flex-col items-end">
-            <span className="text-sm font-bold text-gray-700">{adminName}</span>
+            <span className="text-sm font-bold text-gray-700">{adminName || t('system_admin')}</span>
             <span className="text-xs text-gray-500">{t('general_manager')}</span>
           </div>
           <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-100 to-purple-100 border border-indigo-50 flex items-center justify-center text-indigo-700 font-bold shadow-sm">
-            {adminName.charAt(0)}
+            {(adminName || t('system_admin')).charAt(0)}
           </div>
         </div>
         

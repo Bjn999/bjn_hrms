@@ -2,9 +2,35 @@
 
 import { useEffect, useState } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams } from 'next/navigation';
+import { FinanceMonth } from '@/types';
 
-const API = 'http://localhost:8000/api/admin';
+interface PrintSalaryData {
+  employee_code: string;
+  emp_name_display?: string;
+  emp_name?: string;
+  emp_national_idenity?: string;
+  sal_cash_or_visa?: number;
+  emp_departments_id?: number;
+  emp_job_id?: number;
+  emp_sal: number | string;
+  total_fixed_allowances: number | string;
+  total_mot3ear_allowances: number | string;
+  total_additions: number | string;
+  total_rewards: number | string;
+  total_benefits: number | string;
+  social_nsurance_cut_mony: number | string;
+  medical_insurance_cut_mony: number | string;
+  total_absences: number | string;
+  total_sanctions: number | string;
+  total_discounts: number | string;
+  total_permanent_loans: number | string;
+  total_loans: number | string;
+  total_deduction: number | string;
+  final_the_net: number | string;
+}
+
+const API = process.env.NEXT_PUBLIC_API_URL || '';
 
 const MONTHS_AR: Record<number, string> = {
   1: 'يناير', 2: 'فبراير', 3: 'مارس', 4: 'أبريل',
@@ -15,12 +41,11 @@ const MONTHS_AR: Record<number, string> = {
 export default function PrintSalarySlipPage() {
   const { t } = useLanguage();
   const params = useParams();
-  const router = useRouter();
   const recordId = params?.id as string;
 
   const [loading, setLoading] = useState(true);
-  const [data, setData] = useState<any>(null);
-  const [financeMonth, setFinanceMonth] = useState<any>(null);
+  const [data, setData] = useState<PrintSalaryData | null>(null);
+  const [financeMonth, setFinanceMonth] = useState<FinanceMonth | null>(null);
 
   const headers = () => ({
     'Authorization': `Bearer ${localStorage.getItem('admin_token')}`,
@@ -42,13 +67,17 @@ export default function PrintSalarySlipPage() {
             window.print();
           }, 500);
         }
-      } catch (error) {
-        console.error("Error fetching data:", error);
+      } catch {
+        // Ignored
       } finally {
         setLoading(false);
       }
     };
-    fetchData();
+
+    const timer = setTimeout(() => {
+      fetchData();
+    }, 0);
+    return () => clearTimeout(timer);
   }, [recordId]);
 
   if (loading) {
@@ -59,7 +88,7 @@ export default function PrintSalarySlipPage() {
     return <div className="min-h-screen flex items-center justify-center font-bold text-rose-500">لم يتم العثور على بيانات هذا الراتب</div>;
   }
 
-  const monthName = financeMonth ? MONTHS_AR[financeMonth.month_id] : '';
+  const monthName = financeMonth && financeMonth.month_id !== undefined ? MONTHS_AR[financeMonth.month_id] : '';
   const year = financeMonth ? financeMonth.finance_yr : '';
 
   return (
@@ -136,28 +165,28 @@ export default function PrintSalarySlipPage() {
             <ul className="space-y-1.5">
               <li className="flex justify-between items-center text-sm font-bold">
                 <span className="text-slate-600">الراتب الأساسي</span>
-                <span className="text-slate-900">{parseFloat(data.emp_sal || 0).toFixed(2)}</span>
+                <span className="text-slate-900">{parseFloat(String(data.emp_sal || 0)).toFixed(2)}</span>
               </li>
               <li className="flex justify-between items-center text-sm font-bold">
                 <span className="text-slate-600">بدلات ثابتة</span>
-                <span className="text-slate-900">{parseFloat(data.total_fixed_allowances || 0).toFixed(2)}</span>
+                <span className="text-slate-900">{parseFloat(String(data.total_fixed_allowances || 0)).toFixed(2)}</span>
               </li>
               <li className="flex justify-between items-center text-sm font-bold">
                 <span className="text-slate-600">بدلات متغيرة</span>
-                <span className="text-slate-900">{parseFloat(data.total_mot3ear_allowances || 0).toFixed(2)}</span>
+                <span className="text-slate-900">{parseFloat(String(data.total_mot3ear_allowances || 0)).toFixed(2)}</span>
               </li>
               <li className="flex justify-between items-center text-sm font-bold">
                 <span className="text-slate-600">إضافي أيام</span>
-                <span className="text-slate-900">{parseFloat(data.total_additions || 0).toFixed(2)}</span>
+                <span className="text-slate-900">{parseFloat(String(data.total_additions || 0)).toFixed(2)}</span>
               </li>
               <li className="flex justify-between items-center text-sm font-bold">
                 <span className="text-slate-600">المكافآت المالية</span>
-                <span className="text-slate-900">{parseFloat(data.total_rewards || 0).toFixed(2)}</span>
+                <span className="text-slate-900">{parseFloat(String(data.total_rewards || 0)).toFixed(2)}</span>
               </li>
             </ul>
             <div className="mt-4 pt-3 border-t-2 border-dashed border-emerald-200 flex justify-between items-center font-black">
               <span className="text-emerald-800">إجمالي الاستحقاقات</span>
-              <span className="text-emerald-700 text-lg">{parseFloat(data.total_benefits || 0).toFixed(2)}</span>
+              <span className="text-emerald-700 text-lg">{parseFloat(String(data.total_benefits || 0)).toFixed(2)}</span>
             </div>
           </div>
 
@@ -170,36 +199,36 @@ export default function PrintSalarySlipPage() {
             <ul className="space-y-1.5">
               <li className="flex justify-between items-center text-sm font-bold">
                 <span className="text-slate-600">تأمين اجتماعي</span>
-                <span className="text-slate-900">{parseFloat(data.social_nsurance_cut_mony || 0).toFixed(2)}</span>
+                <span className="text-slate-900">{parseFloat(String(data.social_nsurance_cut_mony || 0)).toFixed(2)}</span>
               </li>
               <li className="flex justify-between items-center text-sm font-bold">
                 <span className="text-slate-600">تأمين طبي</span>
-                <span className="text-slate-900">{parseFloat(data.medical_insurance_cut_mony || 0).toFixed(2)}</span>
+                <span className="text-slate-900">{parseFloat(String(data.medical_insurance_cut_mony || 0)).toFixed(2)}</span>
               </li>
               <li className="flex justify-between items-center text-sm font-bold">
                 <span className="text-slate-600">خصم الغيابات</span>
-                <span className="text-slate-900">{parseFloat(data.total_absences || 0).toFixed(2)}</span>
+                <span className="text-slate-900">{parseFloat(String(data.total_absences || 0)).toFixed(2)}</span>
               </li>
               <li className="flex justify-between items-center text-sm font-bold">
                 <span className="text-slate-600">خصم الجزاءات</span>
-                <span className="text-slate-900">{parseFloat(data.total_sanctions || 0).toFixed(2)}</span>
+                <span className="text-slate-900">{parseFloat(String(data.total_sanctions || 0)).toFixed(2)}</span>
               </li>
               <li className="flex justify-between items-center text-sm font-bold">
                 <span className="text-slate-600">الخصومات المالية</span>
-                <span className="text-slate-900">{parseFloat(data.total_discounts || 0).toFixed(2)}</span>
+                <span className="text-slate-900">{parseFloat(String(data.total_discounts || 0)).toFixed(2)}</span>
               </li>
               <li className="flex justify-between items-center text-sm font-bold">
                 <span className="text-slate-600">السلف المستدامة</span>
-                <span className="text-slate-900">{parseFloat(data.total_permanent_loans || 0).toFixed(2)}</span>
+                <span className="text-slate-900">{parseFloat(String(data.total_permanent_loans || 0)).toFixed(2)}</span>
               </li>
               <li className="flex justify-between items-center text-sm font-bold">
                 <span className="text-slate-600">السلف الشهرية</span>
-                <span className="text-slate-900">{parseFloat(data.total_loans || 0).toFixed(2)}</span>
+                <span className="text-slate-900">{parseFloat(String(data.total_loans || 0)).toFixed(2)}</span>
               </li>
             </ul>
             <div className="mt-4 pt-3 border-t-2 border-dashed border-rose-200 flex justify-between items-center font-black">
               <span className="text-rose-800">إجمالي الاستقطاعات</span>
-              <span className="text-rose-700 text-lg">{parseFloat(data.total_deduction || 0).toFixed(2)}</span>
+              <span className="text-rose-700 text-lg">{parseFloat(String(data.total_deduction || 0)).toFixed(2)}</span>
             </div>
           </div>
 
@@ -212,7 +241,7 @@ export default function PrintSalarySlipPage() {
             <p className="text-xs opacity-75 hidden sm:block">المبلغ النهائي بعد كافة الاستحقاقات والاستقطاعات</p>
           </div>
           <div className="text-right">
-            <span className="text-2xl font-black">{parseFloat(data.final_the_net || 0).toFixed(2)}</span>
+            <span className="text-2xl font-black">{parseFloat(String(data.final_the_net || 0)).toFixed(2)}</span>
             <span className="text-sm ml-2 font-bold opacity-80">ريال</span>
           </div>
         </div>

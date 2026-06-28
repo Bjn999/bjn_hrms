@@ -8,8 +8,15 @@ import LoadingScreen from '@/components/ui/LoadingScreen';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useToast } from '@/contexts/ToastContext';
 import { useConfirm } from '@/contexts/ConfirmContext';
+import { FinanceMonth, Discount, DiscountType, Employee } from '@/types';
 
-const API = 'http://localhost:8000/api/admin';
+interface DiscountEmployee {
+  employee_code?: string;
+  emp_name?: string;
+  employee?: Employee;
+}
+
+const API = process.env.NEXT_PUBLIC_API_URL || '';
 
 const emptyForm = {
   finance_month_period_id: '',
@@ -29,10 +36,10 @@ export default function DiscountsDetailPage() {
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [financeMonth, setFinanceMonth] = useState<any>(null);
-  const [discounts, setDiscounts] = useState<any[]>([]);
-  const [employees, setEmployees] = useState<any[]>([]);
-  const [discountTypes, setDiscountTypes] = useState<any[]>([]);
+  const [financeMonth, setFinanceMonth] = useState<FinanceMonth | null>(null);
+  const [discounts, setDiscounts] = useState<Discount[]>([]);
+  const [employees, setEmployees] = useState<DiscountEmployee[]>([]);
+  const [discountTypes, setDiscountTypes] = useState<DiscountType[]>([]);
   const [isMonthOpen, setIsMonthOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -69,7 +76,13 @@ export default function DiscountsDetailPage() {
     }
   };
 
-  useEffect(() => { fetchData(); }, []);
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      fetchData();
+    }, 0);
+    return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const openAddModal = () => {
     setEditingId(null);
@@ -77,15 +90,15 @@ export default function DiscountsDetailPage() {
     setShowModal(true);
   };
 
-  const openEditModal = (a: any) => {
+  const openEditModal = (a: Discount) => {
     if (a.is_archived == 1) { showToast(t('cannot_edit_archived'), 'error'); return; }
     if (!isMonthOpen) { showToast(t('cannot_edit_closed'), 'error'); return; }
     setEditingId(a.id);
     setForm({
       finance_month_period_id: monthId,
       employee_code: a.employee_code,
-      discounts_type_id: a.discounts_type_id,
-      total: a.total,
+      discounts_type_id: String(a.discounts_type_id || ''),
+      total: String(a.total || ''),
       notes: a.notes || '',
     });
     setShowModal(true);
@@ -98,7 +111,7 @@ export default function DiscountsDetailPage() {
     }
 
     if (!editingId) {
-      const exists = discounts.some((a: any) => String(a.employee_code) === String(form.employee_code));
+      const exists = discounts.some((a: Discount) => String(a.employee_code) === String(form.employee_code));
       if (exists) {
         const ok = await confirm({ title: 'تنبيه', description: 'هذا الموظف لديه خصم بالفعل في هذا الشهر. هل تريد الإضافة على أي حال؟', icon: 'warning' });
         if (!ok) return;
@@ -125,7 +138,7 @@ export default function DiscountsDetailPage() {
     }
   };
 
-  const handleDelete = async (a: any) => {
+  const handleDelete = async (a: Discount) => {
     if (a.is_archived == 1) { showToast(t('cannot_delete_archived'), 'error'); return; }
     if (!isMonthOpen) { showToast(t('cannot_delete_closed'), 'error'); return; }
     const ok = await confirm({ title: t('confirm_delete'), description: 'هل أنت متأكد من حذف الخصم المالي؟', icon: 'danger' });
@@ -140,7 +153,7 @@ export default function DiscountsDetailPage() {
     }
   };
 
-  const filteredDiscounts = discounts.filter((d: any) => {
+  const filteredDiscounts = discounts.filter((d: Discount) => {
     if (!searchQuery) return true;
     const query = searchQuery.toLowerCase();
     const empName = d.employee?.emp_name?.toLowerCase() || '';
@@ -151,7 +164,7 @@ export default function DiscountsDetailPage() {
     return empName.includes(query) || empCode.includes(query) || notes.includes(query) || total.includes(query) || typeLabel.includes(query);
   });
 
-  const totalAmount = filteredDiscounts.reduce((s: number, a: any) => s + parseFloat(a.total || 0), 0);
+  const totalAmount = filteredDiscounts.reduce((s: number, a: Discount) => s + parseFloat((a.total || 0).toString()), 0);
 
   if (loading) return <LoadingScreen />;
 
@@ -257,7 +270,7 @@ export default function DiscountsDetailPage() {
               </tr>
             </thead>
             <tbody>
-              {filteredDiscounts.map((a: any) => {
+              {filteredDiscounts.map((a: Discount) => {
                 const isArchived = a.is_archived == 1;
                 const canAct = isMonthOpen && !isArchived;
                 return (
@@ -280,14 +293,15 @@ export default function DiscountsDetailPage() {
                       )}
                     </td>
                     <td className="px-5 py-4 font-bold text-slate-600">{a.discount_type?.name}</td>
-                    <td className="px-5 py-4 font-bold text-rose-600">{parseFloat(a.total).toFixed(2)}</td>
+                    {/* <td className="px-5 py-4 font-bold text-rose-600">{a.total.toFixed(2)}</td> */}
+                    <td className="px-5 py-4 font-bold text-rose-600">{parseFloat(String(a.total)).toFixed(2)}</td>
                     <td className="px-5 py-4 text-xs font-bold text-slate-500">
                       <div>{new Date(a.created_at).toLocaleDateString('ar-SA')}</div>
                       <div>{new Date(a.created_at).toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' })}</div>
                       <div className="text-emerald-600 mt-1">{a.added?.name}</div>
                     </td>
                     <td className="px-5 py-4 text-xs font-bold text-slate-500">
-                      {a.updated_by > 0 && a.updated_at ? (
+                      {a.updated_by && a.updated_by > 0 && a.updated_at ? (
                         <>
                           <div>{new Date(a.updated_at).toLocaleDateString('ar-SA')}</div>
                           <div>{new Date(a.updated_at).toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' })}</div>
@@ -356,7 +370,7 @@ export default function DiscountsDetailPage() {
                   className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none text-slate-700 font-bold focus:ring-2 focus:ring-rose-500/20"
                 >
                   <option value="">{t('select_employee')}</option>
-                  {employees.map((e: any) => (
+                  {employees.map((e: DiscountEmployee) => (
                     <option key={e.employee_code || e.employee?.employee_code} value={e.employee_code || e.employee?.employee_code}>
                       {e.employee?.emp_name || e.emp_name}
                     </option>
@@ -371,7 +385,7 @@ export default function DiscountsDetailPage() {
                   className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none text-slate-700 font-bold focus:ring-2 focus:ring-rose-500/20"
                 >
                   <option value="">اختر نوع الخصم</option>
-                  {discountTypes.map((t: any) => (
+                  {discountTypes.map((t: DiscountType) => (
                     <option key={t.id} value={t.id}>{t.name}</option>
                   ))}
                 </select>

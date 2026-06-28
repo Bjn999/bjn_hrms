@@ -4,11 +4,12 @@ import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useLanguage } from '@/contexts/LanguageContext';
 import LoadingScreen from '@/components/ui/LoadingScreen';
+import { Occasion } from '@/types';
 
 export default function OccasionsPage() {
   const { t } = useLanguage();
   const [mounted, setMounted] = useState(false);
-  const [data, setData] = useState([]);
+  const [data, setData] = useState<Occasion[]>([]);
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState({ type: '', text: '' });
   
@@ -24,27 +25,31 @@ export default function OccasionsPage() {
     active: '1'
   });
 
-  useEffect(() => {
-    setMounted(true);
-    fetchData();
-  }, []);
-
   const fetchData = async () => {
     try {
       const token = localStorage.getItem('admin_token');
-      const res = await fetch('http://localhost:8000/api/admin/occasions', {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || ''}/occasions`, {
         headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/json' }
       });
       const result = await res.json();
       if (result.status) setData(result.data);
-    } catch (e) {
+    } catch {
       setMessage({ type: 'error', text: t('fetch_failed') });
     } finally {
       setLoading(false);
     }
   };
 
-  const handleOpenModal = (type: string, item: any = null) => {
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setMounted(true);
+      fetchData();
+    }, 0);
+    return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const handleOpenModal = (type: string, item: Occasion | null = null) => {
     setMessage({ type: '', text: '' });
     setModalType(type);
     if (type === 'edit' && item) {
@@ -71,7 +76,7 @@ export default function OccasionsPage() {
     e.preventDefault();
     try {
       const token = localStorage.getItem('admin_token');
-      const url = modalType === 'add' ? 'http://localhost:8000/api/admin/occasions' : `http://localhost:8000/api/admin/occasions/${editingId}`;
+      const url = modalType === 'add' ? `${process.env.NEXT_PUBLIC_API_URL || ''}/occasions` : `${process.env.NEXT_PUBLIC_API_URL || ''}/occasions/${editingId}`;
       const res = await fetch(url, {
         method: modalType === 'add' ? 'POST' : 'PUT',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}`, 'Accept': 'application/json' },
@@ -85,14 +90,14 @@ export default function OccasionsPage() {
       } else {
         setMessage({ type: 'error', text: result.message });
       }
-    } catch (e) { setMessage({ type: 'error', text: t('conn_error') }); }
+    } catch { setMessage({ type: 'error', text: t('conn_error') }); }
   };
 
   const handleDelete = async (id: number) => {
     if (!confirm(t('confirm_delete'))) return;
     try {
       const token = localStorage.getItem('admin_token');
-      const res = await fetch(`http://localhost:8000/api/admin/occasions/${id}`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || ''}/occasions/${id}`, {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/json' }
       });
@@ -103,7 +108,7 @@ export default function OccasionsPage() {
       } else {
         setMessage({ type: 'error', text: result.message });
       }
-    } catch (e) { setMessage({ type: 'error', text: t('conn_error') }); }
+    } catch { setMessage({ type: 'error', text: t('conn_error') }); }
   };
 
   if (loading) return <LoadingScreen />;
@@ -137,7 +142,7 @@ export default function OccasionsPage() {
             </tr>
           </thead>
           <tbody>
-            {data.map((item: any) => (
+            {data.map((item: Occasion) => (
               <tr key={item.id} className="border-b border-slate-50 hover:bg-slate-50/50 transition-colors">
                 <td className="px-6 py-4 font-black text-slate-900">{item.name}</td>
                 <td className="px-6 py-4 text-slate-700 font-bold">{item.from_date}</td>

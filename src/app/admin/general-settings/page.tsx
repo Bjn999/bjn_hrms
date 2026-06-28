@@ -9,7 +9,6 @@ export default function GeneralSettingsPage() {
   const { t } = useLanguage();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [message, setMessage] = useState({ type: '', text: '' });
   const [formData, setFormData] = useState({
     company_name: '',
     phones: '',
@@ -29,14 +28,10 @@ export default function GeneralSettingsPage() {
     sanctions_value_fourth_abcence: ''
   });
 
-  useEffect(() => {
-    fetchSettings();
-  }, []);
-
   const fetchSettings = async () => {
     try {
       const token = localStorage.getItem('admin_token');
-      const res = await fetch('http://localhost:8000/api/admin/generalSettings', {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || ''}/generalSettings`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Accept': 'application/json'
@@ -46,13 +41,20 @@ export default function GeneralSettingsPage() {
       if (result.status && result.data) {
         setFormData(result.data);
       }
-    } catch (e) {
-      console.error(e);
+    } catch {
       showToast(t('fetch_failed'), 'error');
     } finally {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      fetchSettings();
+    }, 0);
+    return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -65,7 +67,7 @@ export default function GeneralSettingsPage() {
 
     try {
       const token = localStorage.getItem('admin_token');
-      const res = await fetch('http://localhost:8000/api/admin/generalSettings', {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || ''}/generalSettings`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -82,8 +84,7 @@ export default function GeneralSettingsPage() {
       } else {
         showToast(result.message || t('update_error'), 'error');
       }
-    } catch (e) {
-      console.error(e);
+    } catch {
       showToast(t('conn_error'), 'error');
     } finally {
       setSaving(false);
@@ -100,19 +101,6 @@ export default function GeneralSettingsPage() {
           <p className="text-slate-500 mt-1">{t('general_settings_desc')}</p>
         </div>
       </div>
-
-      {message.text && (
-        <div className={`p-4 mb-8 rounded-2xl flex items-center gap-3 backdrop-blur-sm shadow-sm animate-fade-in-up ${message.type === 'success' ? 'bg-emerald-50 text-emerald-800 border border-emerald-200/50' : 'bg-rose-50 text-rose-800 border border-rose-200/50'}`}>
-          <svg className={`w-6 h-6 ${message.type === 'success' ? 'text-emerald-500' : 'text-rose-500'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            {message.type === 'success' ? (
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-            ) : (
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            )}
-          </svg>
-          <span className="font-medium">{message.text}</span>
-        </div>
-      )}
 
       <form onSubmit={handleSubmit} className="space-y-8">
         

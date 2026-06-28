@@ -6,6 +6,11 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { useToast } from '@/contexts/ToastContext';
 import { useConfirm } from '@/contexts/ConfirmContext';
 import LoadingScreen from '@/components/ui/LoadingScreen';
+import { Center, Governorate, Country } from '@/types';
+
+interface CenterItem extends Center {
+  country_id: number;
+}
 
 export default function CentersPage() {
   const { t } = useLanguage();
@@ -13,14 +18,14 @@ export default function CentersPage() {
   const { confirm } = useConfirm();
   
   const [mounted, setMounted] = useState(false);
-  const [data, setData] = useState([]);
-  const [countries, setCountries] = useState([]);
-  const [governorates, setGovernorates] = useState([]);
+  const [data, setData] = useState<CenterItem[]>([]);
+  const [countries, setCountries] = useState<Country[]>([]);
+  const [governorates, setGovernorates] = useState<Governorate[]>([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [modalType, setModalType] = useState('add');
   const [editingId, setEditingId] = useState<number | null>(null);
-  const [editingItem, setEditingItem] = useState<any>(null);
+  const [editingItem, setEditingItem] = useState<CenterItem | null>(null);
 
   const [formData, setFormData] = useState({
     name: '',
@@ -29,33 +34,29 @@ export default function CentersPage() {
     active: '1'
   });
 
-  useEffect(() => {
-    setMounted(true);
-    fetchData();
-    fetchCountries();
-  }, []);
-
   const fetchData = async () => {
     try {
       const token = localStorage.getItem('admin_token');
-      const res = await fetch('http://localhost:8000/api/admin/centers', {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || ''}/centers`, {
         headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/json' }
       });
       const result = await res.json();
       if (result.status) setData(result.data);
-    } catch (e) { showToast(t('fetch_failed'), 'error'); }
+    } catch { showToast(t('fetch_failed'), 'error'); }
     finally { setLoading(false); }
   };
 
   const fetchCountries = async () => {
     try {
       const token = localStorage.getItem('admin_token');
-      const res = await fetch('http://localhost:8000/api/admin/countries', {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || ''}/countries`, {
         headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/json' }
       });
       const result = await res.json();
-      if (result.status) setCountries(result.data.filter((c: any) => c.active == 1));
-    } catch (e) { console.error(e); }
+      if (result.status) setCountries(result.data.filter((c: Country) => c.active == 1));
+    } catch {
+      // Ignored
+    }
   };
 
   const fetchGovernorates = async (countryId: string) => {
@@ -65,15 +66,27 @@ export default function CentersPage() {
     }
     try {
       const token = localStorage.getItem('admin_token');
-      const res = await fetch(`http://localhost:8000/api/admin/governorates-by-country/${countryId}`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || ''}/governorates-by-country/${countryId}`, {
         headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/json' }
       });
       const result = await res.json();
       if (result.status) setGovernorates(result.data);
-    } catch (e) { console.error(e); }
+    } catch {
+      // Ignored
+    }
   };
 
-  const handleOpenModal = async (type: string, item: any = null) => {
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setMounted(true);
+      fetchData();
+      fetchCountries();
+    }, 0);
+    return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const handleOpenModal = async (type: string, item: CenterItem | null = null) => {
     setModalType(type);
     if (type === 'edit' && item) {
       setEditingId(item.id);
@@ -107,7 +120,7 @@ export default function CentersPage() {
     e.preventDefault();
     try {
       const token = localStorage.getItem('admin_token');
-      const url = modalType === 'add' ? 'http://localhost:8000/api/admin/centers' : `http://localhost:8000/api/admin/centers/${editingId}`;
+      const url = modalType === 'add' ? `${process.env.NEXT_PUBLIC_API_URL || ''}/centers` : `${process.env.NEXT_PUBLIC_API_URL || ''}/centers/${editingId}`;
       const res = await fetch(url, {
         method: modalType === 'add' ? 'POST' : 'PUT',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}`, 'Accept': 'application/json' },
@@ -120,7 +133,7 @@ export default function CentersPage() {
         showToast(result.message, 'success');
       }
       else { showToast(result.message, 'error'); }
-    } catch (e) { showToast(t('conn_error'), 'error'); }
+    } catch { showToast(t('conn_error'), 'error'); }
   };
 
   const handleDelete = async (id: number) => {
@@ -133,7 +146,7 @@ export default function CentersPage() {
 
     try {
       const token = localStorage.getItem('admin_token');
-      const res = await fetch(`http://localhost:8000/api/admin/centers/${id}`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || ''}/centers/${id}`, {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/json' }
       });
@@ -143,7 +156,7 @@ export default function CentersPage() {
         showToast(result.message, 'success');
       }
       else { showToast(result.message, 'error'); }
-    } catch (e) { showToast(t('conn_error'), 'error'); }
+    } catch { showToast(t('conn_error'), 'error'); }
   };
 
   if (loading) return <LoadingScreen />;
@@ -174,7 +187,7 @@ export default function CentersPage() {
               </tr>
             </thead>
             <tbody>
-              {data.map((item: any) => (
+                {data.map((item: CenterItem) => (
                 <tr key={item.id} className="border-b border-slate-50 hover:bg-slate-50/50 transition-colors">
                   <td className="px-6 py-4 font-bold text-slate-900">{item.name}</td>
                   <td className="px-6 py-4 text-slate-700 font-bold">{item.governorate?.name}</td>
@@ -194,7 +207,7 @@ export default function CentersPage() {
                     {item.updatedby ? (
                       <div className="flex flex-col">
                         <span className="text-amber-600 text-xs font-black">{item.updatedby.name}</span>
-                        <span className="text-[10px] text-slate-500">{new Date(item.updated_at).toLocaleString('ar-EG')}</span>
+                        <span className="text-[10px] text-slate-500">{item.updated_at ? new Date(item.updated_at).toLocaleString('ar-EG') : ''}</span>
                       </div>
                     ) : (
                       <span className="text-slate-400 text-xs font-bold italic">لم يتم التحديث</span>
@@ -204,7 +217,7 @@ export default function CentersPage() {
                     <button onClick={() => handleOpenModal('edit', item)} className="text-amber-500 p-2 hover:bg-amber-50 rounded-lg transition-colors">
                       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
                     </button>
-                    {!(item.counterUsed > 0) && (
+                    {!(item.counterUsed && item.counterUsed > 0) && (
                       <button onClick={() => handleDelete(item.id)} className="text-rose-500 p-2 hover:bg-rose-50 rounded-lg transition-colors">
                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
                       </button>
@@ -232,7 +245,7 @@ export default function CentersPage() {
                   <label className="block text-base font-black text-slate-950 mb-2">{t('countries')}</label>
                   <select name="country_id" value={formData.country_id} onChange={handleChange} required className="w-full px-4 py-3 bg-white border-2 border-slate-300 rounded-xl text-slate-950 font-black shadow-sm focus:ring-2 focus:ring-indigo-500/50 outline-none transition-all text-sm">
                     <option value="">اختر الدولة</option>
-                    {countries.map((c: any) => (
+                    {countries.map((c: Country) => (
                       <option key={c.id} value={c.id}>{c.name}</option>
                     ))}
                   </select>
@@ -241,7 +254,7 @@ export default function CentersPage() {
                   <label className="block text-base font-black text-slate-950 mb-2">{t('governorates')}</label>
                   <select name="governorate_id" value={formData.governorate_id} onChange={handleChange} required className="w-full px-4 py-3 bg-white border-2 border-slate-300 rounded-xl text-slate-950 font-black shadow-sm focus:ring-2 focus:ring-indigo-500/50 outline-none transition-all text-sm" disabled={governorates.length === 0}>
                     <option value="">اختر المحافظة</option>
-                    {governorates.map((g: any) => (
+                    {governorates.map((g: Governorate) => (
                       <option key={g.id} value={g.id}>{g.name}</option>
                     ))}
                   </select>
@@ -253,13 +266,13 @@ export default function CentersPage() {
                   name="active" 
                   value={formData.active} 
                   onChange={handleChange} 
-                  disabled={modalType === 'edit' && editingItem?.counterUsed > 0}
-                  className={`w-full px-4 py-3 bg-white border-2 border-slate-300 rounded-xl text-slate-950 font-black shadow-sm focus:ring-2 focus:ring-indigo-500/50 outline-none transition-all ${modalType === 'edit' && editingItem?.counterUsed > 0 ? 'bg-slate-50 cursor-not-allowed opacity-70' : ''}`}
+                  disabled={modalType === 'edit' && (editingItem?.counterUsed || 0) > 0}
+                  className={`w-full px-4 py-3 bg-white border-2 border-slate-300 rounded-xl text-slate-950 font-black shadow-sm focus:ring-2 focus:ring-indigo-500/50 outline-none transition-all ${modalType === 'edit' && (editingItem?.counterUsed || 0) > 0 ? 'bg-slate-50 cursor-not-allowed opacity-70' : ''}`}
                 >
                   <option value="1">{t('active')}</option>
                   <option value="0">{t('inactive')}</option>
                 </select>
-                {modalType === 'edit' && editingItem?.counterUsed > 0 && (
+                {modalType === 'edit' && (editingItem?.counterUsed || 0) > 0 && (
                   <p className="mt-2 text-rose-600 text-xs font-bold flex items-center gap-1 text-right">
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
                     لا يمكن تعطيله لأنه مستخدم في بيانات أحد الموظفين

@@ -2,14 +2,39 @@
 
 import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import LoadingScreen from '@/components/ui/LoadingScreen';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useToast } from '@/contexts/ToastContext';
 import { useConfirm } from '@/contexts/ConfirmContext';
+import { FinanceMonth, Employee, User } from '@/types';
 
-const API = 'http://localhost:8000/api/admin';
+interface AdditionItem {
+  id: number;
+  finance_month_period_id: number;
+  employee_code: string;
+  day_price: number;
+  value: number;
+  total: number;
+  notes?: string;
+  is_archived: number;
+  created_at: string;
+  updated_at?: string;
+  employee?: Employee;
+  updated_by?: number;
+  added?: User;
+  updatedby?: User;
+}
+
+interface AdditionEmployee {
+  employee_code?: string;
+  day_price?: number;
+  emp_name?: string;
+  employee?: Employee;
+}
+
+const API = process.env.NEXT_PUBLIC_API_URL || '';
 
 const emptyForm = {
   finance_month_period_id: '',
@@ -24,14 +49,13 @@ export default function AdditionsDetailPage() {
   const { showToast } = useToast();
   const { confirm } = useConfirm();
   const params = useParams();
-  const router = useRouter();
   const monthId = params?.id as string;
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [financeMonth, setFinanceMonth] = useState<any>(null);
-  const [additions, setAdditions] = useState<any[]>([]);
-  const [employees, setEmployees] = useState<any[]>([]);
+  const [financeMonth, setFinanceMonth] = useState<FinanceMonth | null>(null);
+  const [additions, setAdditions] = useState<AdditionItem[]>([]);
+  const [employees, setEmployees] = useState<AdditionEmployee[]>([]);
   const [isMonthOpen, setIsMonthOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -65,7 +89,13 @@ export default function AdditionsDetailPage() {
     }
   };
 
-  useEffect(() => { fetchData(); }, []);
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      fetchData();
+    }, 0);
+    return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const openAddModal = () => {
     setEditingId(null);
@@ -73,24 +103,24 @@ export default function AdditionsDetailPage() {
     setShowModal(true);
   };
 
-  const openEditModal = (a: any) => {
+  const openEditModal = (a: AdditionItem) => {
     if (a.is_archived == 1) { showToast(t('cannot_edit_archived'), 'error'); return; }
     if (!isMonthOpen) { showToast(t('cannot_edit_closed'), 'error'); return; }
     setEditingId(a.id);
     setForm({
       finance_month_period_id: monthId,
       employee_code: a.employee_code,
-      day_price: a.day_price,
-      value: a.value,
+      day_price: String(a.day_price || ''),
+      value: String(a.value || ''),
       notes: a.notes || '',
     });
     setShowModal(true);
   };
 
   const handleEmployeeChange = (code: string) => {
-    const emp = employees.find((e: any) => e.employee_code == code);
+    const emp = employees.find((e: AdditionEmployee) => e.employee_code == code);
     const dayPrice = emp?.day_price || '';
-    setForm(f => ({ ...f, employee_code: code, day_price: dayPrice }));
+    setForm(f => ({ ...f, employee_code: code, day_price: String(dayPrice) }));
   };
 
   const handleSave = async () => {
@@ -100,7 +130,7 @@ export default function AdditionsDetailPage() {
     }
 
     if (!editingId) {
-      const exists = additions.some((a: any) => String(a.employee_code) === String(form.employee_code));
+      const exists = additions.some((a: AdditionItem) => String(a.employee_code) === String(form.employee_code));
       if (exists) {
         const ok = await confirm({ title: 'تنبيه', description: 'هذا الموظف لديه إضافي أيام بالفعل في هذا الشهر. هل تريد الإضافة على أي حال؟', icon: 'warning' });
         if (!ok) return;
@@ -131,7 +161,7 @@ export default function AdditionsDetailPage() {
     }
   };
 
-  const handleDelete = async (a: any) => {
+  const handleDelete = async (a: AdditionItem) => {
     if (a.is_archived == 1) { showToast(t('cannot_delete_archived'), 'error'); return; }
     if (!isMonthOpen) { showToast(t('cannot_delete_closed'), 'error'); return; }
     const ok = await confirm({ title: t('confirm_delete'), description: 'هل أنت متأكد من حذف الإضافي؟', icon: 'danger' });
@@ -146,7 +176,7 @@ export default function AdditionsDetailPage() {
     }
   };
 
-  const filteredAdditions = additions.filter((a: any) => {
+  const filteredAdditions = additions.filter((a: AdditionItem) => {
     if (!searchQuery) return true;
     const query = searchQuery.toLowerCase();
     const empName = a.employee?.emp_name?.toLowerCase() || '';
@@ -157,8 +187,8 @@ export default function AdditionsDetailPage() {
     return empName.includes(query) || empCode.includes(query) || notes.includes(query) || value.includes(query) || total.includes(query);
   });
 
-  const total = filteredAdditions.reduce((sum: number, a: any) => sum + parseFloat(a.total || 0), 0);
-  const days = filteredAdditions.reduce((sum: number, a: any) => sum + parseFloat(a.value || 0), 0);
+  const total = filteredAdditions.reduce((sum: number, a: AdditionItem) => sum + parseFloat((a.total || 0).toString()), 0);
+  const days = filteredAdditions.reduce((sum: number, a: AdditionItem) => sum + parseFloat((a.value || 0).toString()), 0);
 
   if (loading) return <LoadingScreen />;
 
@@ -273,10 +303,10 @@ export default function AdditionsDetailPage() {
               </tr>
             </thead>
             <tbody>
-              {filteredAdditions.map((a: any) => {
+              {filteredAdditions.map((a: AdditionItem) => {
                 const isArchived = a.is_archived == 1;
                 const canAct = isMonthOpen && !isArchived;
-                const emp = employees.find((e: any) => String(e.employee_code) === String(a.employee_code));
+                const emp = employees.find((e: AdditionEmployee) => String(e.employee_code) === String(a.employee_code));
                 const empName = a.employee?.emp_name || emp?.emp_name || a.employee_code;
                 
                 return (
@@ -299,14 +329,14 @@ export default function AdditionsDetailPage() {
                       ) : null}
                     </td>
                     <td className="px-5 py-4 font-bold text-indigo-600">{a.value} أيام</td>
-                    <td className="px-5 py-4 font-bold text-emerald-600">{parseFloat(a.total).toFixed(2)}</td>
+                    <td className="px-5 py-4 font-bold text-emerald-600">{a.total.toFixed(2)}</td>
                     <td className="px-5 py-4 text-xs font-bold text-slate-500">
                       <div>{new Date(a.created_at).toLocaleDateString('ar-SA')}</div>
                       <div>{new Date(a.created_at).toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' })}</div>
                       <div className="text-emerald-600 mt-1">{a.added?.name}</div>
                     </td>
                     <td className="px-5 py-4 text-xs font-bold text-slate-500">
-                      {a.updated_by > 0 && a.updated_at ? (
+                      {a.updated_by && a.updated_by > 0 && a.updated_at ? (
                         <>
                           <div>{new Date(a.updated_at).toLocaleDateString('ar-SA')}</div>
                           <div>{new Date(a.updated_at).toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' })}</div>
@@ -373,7 +403,7 @@ export default function AdditionsDetailPage() {
                   className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none text-slate-700 font-bold focus:ring-2 focus:ring-emerald-500/20"
                 >
                   <option value="">{t('select_employee')}</option>
-                  {employees.map((e: any) => (
+                  {employees.map((e: AdditionEmployee) => (
                     <option key={e.employee_code} value={e.employee_code}>
                       {e.emp_name}
                     </option>

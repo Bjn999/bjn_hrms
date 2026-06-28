@@ -6,6 +6,12 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { useToast } from '@/contexts/ToastContext';
 import { useConfirm } from '@/contexts/ConfirmContext';
 import LoadingScreen from '@/components/ui/LoadingScreen';
+import { FinanceCalendar, FinanceMonth } from '@/types';
+
+interface FinanceMonthItem extends FinanceMonth {
+  year_and_month?: string;
+  number_of_days?: number;
+}
 
 export default function FinanceCalendarsPage() {
   const { t } = useLanguage();
@@ -13,7 +19,7 @@ export default function FinanceCalendarsPage() {
   const { confirm } = useConfirm();
   
   const [mounted, setMounted] = useState(false);
-  const [data, setData] = useState([]);
+  const [data, setData] = useState<FinanceCalendar[]>([]);
   const [loading, setLoading] = useState(true);
   const [hasOpen, setHasOpen] = useState(false);
 
@@ -24,7 +30,7 @@ export default function FinanceCalendarsPage() {
 
   // Months modal state
   const [showMonthsModal, setShowMonthsModal] = useState(false);
-  const [monthsData, setMonthsData] = useState([]);
+  const [monthsData, setMonthsData] = useState<FinanceMonthItem[]>([]);
 
   const [formData, setFormData] = useState({
     finance_yr: '',
@@ -33,15 +39,10 @@ export default function FinanceCalendarsPage() {
     end_date: ''
   });
 
-  useEffect(() => {
-    setMounted(true);
-    fetchData();
-  }, []);
-
   const fetchData = async () => {
     try {
       const token = localStorage.getItem('admin_token');
-      const res = await fetch('http://localhost:8000/api/admin/finance-calendars', {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || ''}/finance-calendars`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Accept': 'application/json'
@@ -52,14 +53,23 @@ export default function FinanceCalendarsPage() {
         setData(result.data);
         setHasOpen(result.has_open);
       }
-    } catch (e) {
+    } catch {
       showToast(t('fetch_failed'), 'error');
     } finally {
       setLoading(false);
     }
   };
 
-  const handleOpenModal = (type: string, item: any = null) => {
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setMounted(true);
+      fetchData();
+    }, 0);
+    return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const handleOpenModal = (type: string, item: FinanceCalendar | null = null) => {
     setModalType(type);
     if (type === 'edit' && item) {
       setEditingId(item.id);
@@ -90,8 +100,8 @@ export default function FinanceCalendarsPage() {
     try {
       const token = localStorage.getItem('admin_token');
       const url = modalType === 'add'
-        ? 'http://localhost:8000/api/admin/finance-calendars'
-        : `http://localhost:8000/api/admin/finance-calendars/${editingId}`;
+        ? `${process.env.NEXT_PUBLIC_API_URL || ''}/finance-calendars`
+        : `${process.env.NEXT_PUBLIC_API_URL || ''}/finance-calendars/${editingId}`;
       const method = modalType === 'add' ? 'POST' : 'PUT';
 
       const res = await fetch(url, {
@@ -112,7 +122,7 @@ export default function FinanceCalendarsPage() {
       } else {
         showToast(result.message, 'error');
       }
-    } catch (e) {
+    } catch {
       showToast(t('conn_error'), 'error');
     }
   };
@@ -127,7 +137,7 @@ export default function FinanceCalendarsPage() {
 
     try {
       const token = localStorage.getItem('admin_token');
-      const res = await fetch(`http://localhost:8000/api/admin/finance-calendars/${id}`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || ''}/finance-calendars/${id}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -141,7 +151,7 @@ export default function FinanceCalendarsPage() {
       } else {
         showToast(result.message, 'error');
       }
-    } catch (e) {
+    } catch {
       showToast(t('conn_error'), 'error');
     }
   };
@@ -156,7 +166,7 @@ export default function FinanceCalendarsPage() {
 
     try {
       const token = localStorage.getItem('admin_token');
-      const res = await fetch(`http://localhost:8000/api/admin/finance-calendars/${id}/open`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || ''}/finance-calendars/${id}/open`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -171,7 +181,7 @@ export default function FinanceCalendarsPage() {
       } else {
         showToast(result.message, 'error');
       }
-    } catch (e) {
+    } catch {
       showToast(t('conn_error'), 'error');
     }
   };
@@ -179,7 +189,7 @@ export default function FinanceCalendarsPage() {
   const handleShowMonths = async (id: number) => {
     try {
       const token = localStorage.getItem('admin_token');
-      const res = await fetch(`http://localhost:8000/api/admin/finance-calendars/${id}/months`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || ''}/finance-calendars/${id}/months`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Accept': 'application/json'
@@ -190,7 +200,7 @@ export default function FinanceCalendarsPage() {
         setMonthsData(result.data);
         setShowMonthsModal(true);
       }
-    } catch (e) {
+    } catch {
       showToast(t('fetch_failed'), 'error');
     }
   };
@@ -230,7 +240,7 @@ export default function FinanceCalendarsPage() {
                 </tr>
               </thead>
               <tbody>
-                {data.map((item: any) => (
+                {data.map((item: FinanceCalendar) => (
                   <tr key={item.id} className="border-b border-slate-50 hover:bg-slate-50/50 transition-colors">
                     <td className="px-6 py-4 font-bold text-slate-900">{item.finance_yr}</td>
                     <td className="px-6 py-4 text-slate-700 font-bold">{item.finance_yr_desc}</td>
@@ -251,7 +261,7 @@ export default function FinanceCalendarsPage() {
                       {item.updatedby ? (
                         <div className="flex flex-col">
                           <span className="text-amber-600 text-xs font-black">{item.updatedby.name}</span>
-                          <span className="text-[10px] text-slate-500">{new Date(item.updated_at).toLocaleString('ar-EG')}</span>
+                          <span className="text-[10px] text-slate-500">{item.updated_at ? new Date(item.updated_at).toLocaleString('ar-EG') : '---'}</span>
                         </div>
                       ) : (
                         <span className="text-slate-400 text-xs font-bold italic">{t('not_updated')}</span>
@@ -342,7 +352,7 @@ export default function FinanceCalendarsPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {monthsData.map((month: any) => (
+                  {monthsData.map((month: FinanceMonthItem) => (
                     <tr key={month.id} className="border-b border-slate-50 hover:bg-slate-50/50 transition-colors">
                       <td className="px-6 py-4 font-black text-indigo-600" dir="ltr">{month.year_and_month}</td>
                       <td className="px-6 py-4 font-bold text-slate-900">{month.start_date_m}</td>

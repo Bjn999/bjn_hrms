@@ -8,8 +8,21 @@ import LoadingScreen from '@/components/ui/LoadingScreen';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useToast } from '@/contexts/ToastContext';
 import { useConfirm } from '@/contexts/ConfirmContext';
+import { FinanceMonth, Absence, Employee } from '@/types';
 
-const API = 'http://localhost:8000/api/admin';
+interface AbsenceItem extends Absence {
+  value?: number;
+  day_price?: number;
+}
+
+interface AbsenceEmployee {
+  employee_code?: string;
+  day_price?: number;
+  emp_name?: string;
+  employee?: Employee;
+}
+
+const API = process.env.NEXT_PUBLIC_API_URL || '';
 
 const emptyForm = {
   finance_month_period_id: '',
@@ -29,9 +42,9 @@ export default function AbsencesDetailPage() {
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [financeMonth, setFinanceMonth] = useState<any>(null);
-  const [absences, setAbsences] = useState<any[]>([]);
-  const [employees, setEmployees] = useState<any[]>([]);
+  const [financeMonth, setFinanceMonth] = useState<FinanceMonth | null>(null);
+  const [absences, setAbsences] = useState<AbsenceItem[]>([]);
+  const [employees, setEmployees] = useState<AbsenceEmployee[]>([]);
   const [isMonthOpen, setIsMonthOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -69,7 +82,13 @@ export default function AbsencesDetailPage() {
     }
   };
 
-  useEffect(() => { fetchData(); }, []);
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      fetchData();
+    }, 0);
+    return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const openAddModal = () => {
     setEditingId(null);
@@ -77,24 +96,24 @@ export default function AbsencesDetailPage() {
     setShowModal(true);
   };
 
-  const openEditModal = (a: any) => {
+  const openEditModal = (a: AbsenceItem) => {
     if (a.is_archived == 1) { showToast(t('cannot_edit_archived'), 'error'); return; }
     if (!isMonthOpen) { showToast(t('cannot_edit_closed'), 'error'); return; }
     setEditingId(a.id);
     setForm({
       finance_month_period_id: monthId,
       employee_code: a.employee_code,
-      day_price: a.day_price,
-      value: a.value,
+      day_price: String(a.day_price || ''),
+      value: String(a.value || ''),
       notes: a.notes || '',
     });
     setShowModal(true);
   };
 
   const handleEmployeeChange = (code: string) => {
-    const emp = employees.find((e: any) => e.employee?.employee_code == code || e.employee_code == code);
+    const emp = employees.find((e: AbsenceEmployee) => e.employee?.employee_code == code || e.employee_code == code);
     const dayPrice = emp?.employee?.day_price || emp?.day_price || '';
-    setForm(f => ({ ...f, employee_code: code, day_price: dayPrice }));
+    setForm(f => ({ ...f, employee_code: code, day_price: String(dayPrice) }));
   };
 
   const handleSave = async () => {
@@ -104,7 +123,7 @@ export default function AbsencesDetailPage() {
     }
 
     if (!editingId) {
-      const exists = absences.some((a: any) => String(a.employee_code) === String(form.employee_code));
+      const exists = absences.some((a: AbsenceItem) => String(a.employee_code) === String(form.employee_code));
       if (exists) {
         const ok = await confirm({ title: 'تنبيه', description: 'هذا الموظف لديه سجل غياب بالفعل في هذا الشهر. هل تريد الإضافة على أي حال؟', icon: 'warning' });
         if (!ok) return;
@@ -131,7 +150,7 @@ export default function AbsencesDetailPage() {
     }
   };
 
-  const handleDelete = async (a: any) => {
+  const handleDelete = async (a: AbsenceItem) => {
     if (a.is_archived == 1) { showToast(t('cannot_delete_archived'), 'error'); return; }
     if (!isMonthOpen) { showToast(t('cannot_delete_closed'), 'error'); return; }
     const ok = await confirm({ title: t('confirm_delete'), description: 'هل أنت متأكد من حذف سجل الغياب؟', icon: 'danger' });
@@ -146,7 +165,7 @@ export default function AbsencesDetailPage() {
     }
   };
 
-  const filteredAbsences = absences.filter((a: any) => {
+  const filteredAbsences = absences.filter((a: AbsenceItem) => {
     if (!searchQuery) return true;
     const query = searchQuery.toLowerCase();
     const empName = a.employee?.emp_name?.toLowerCase() || '';
@@ -157,8 +176,8 @@ export default function AbsencesDetailPage() {
     return empName.includes(query) || empCode.includes(query) || notes.includes(query) || value.includes(query) || total.includes(query);
   });
 
-  const totalDays = filteredAbsences.reduce((s: number, a: any) => s + parseFloat(a.value || 0), 0);
-  const totalAmount = filteredAbsences.reduce((s: number, a: any) => s + parseFloat(a.total || 0), 0);
+  const totalDays = filteredAbsences.reduce((s: number, a: AbsenceItem) => s + parseFloat((a.value || 0).toString()), 0);
+  const totalAmount = filteredAbsences.reduce((s: number, a: AbsenceItem) => s + parseFloat((a.total || 0).toString()), 0);
 
   if (loading) return <LoadingScreen />;
 
@@ -273,7 +292,7 @@ export default function AbsencesDetailPage() {
               </tr>
             </thead>
             <tbody>
-              {filteredAbsences.map((a: any) => {
+              {filteredAbsences.map((a: AbsenceItem) => {
                 const isArchived = a.is_archived == 1;
                 const canAct = isMonthOpen && !isArchived;
                 return (
@@ -296,14 +315,14 @@ export default function AbsencesDetailPage() {
                       )}
                     </td>
                     <td className="px-5 py-4 font-bold text-orange-700">{a.value}</td>
-                    <td className="px-5 py-4 font-bold text-rose-600">{parseFloat(a.total).toFixed(2)}</td>
+                    <td className="px-5 py-4 font-bold text-rose-600">{a.total.toFixed(2)}</td>
                     <td className="px-5 py-4 text-xs font-bold text-slate-500">
                       <div>{new Date(a.created_at).toLocaleDateString('ar-SA')}</div>
                       <div>{new Date(a.created_at).toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' })}</div>
                       <div className="text-emerald-600 mt-1">{a.added?.name}</div>
                     </td>
                     <td className="px-5 py-4 text-xs font-bold text-slate-500">
-                      {a.updated_by > 0 && a.updated_at ? (
+                      {a.updated_by && a.updated_by > 0 && a.updated_at ? (
                         <>
                           <div>{new Date(a.updated_at).toLocaleDateString('ar-SA')}</div>
                           <div>{new Date(a.updated_at).toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' })}</div>
@@ -372,7 +391,7 @@ export default function AbsencesDetailPage() {
                   className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none text-slate-700 font-bold focus:ring-2 focus:ring-orange-500/20"
                 >
                   <option value="">{t('select_employee')}</option>
-                  {employees.map((e: any) => (
+                  {employees.map((e: AbsenceEmployee) => (
                     <option key={e.employee_code || e.employee?.employee_code} value={e.employee_code || e.employee?.employee_code}>
                       {e.employee?.emp_name || e.emp_name}
                     </option>

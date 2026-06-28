@@ -18,12 +18,14 @@ export default function DashboardLayout({
   const { t } = useLanguage();
 
   useEffect(() => {
-    const token = localStorage.getItem('admin_token');
-    if (!token) {
-      router.push('/login');
-    } else {
-      setLoading(false);
-    }
+    const timer = setTimeout(() => {
+      const token = localStorage.getItem('admin_token');
+      if (!token) {
+        router.push('/login');
+      } else {
+        setLoading(false);
+      }
+    }, 0);
 
     // Intercept all fetch calls to handle 401 Unauthenticated
     const originalFetch = window.fetch;
@@ -38,6 +40,7 @@ export default function DashboardLayout({
     };
 
     return () => {
+      clearTimeout(timer);
       window.fetch = originalFetch;
     };
   }, [router]);

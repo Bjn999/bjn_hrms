@@ -3,12 +3,71 @@
 import { useEffect, useState } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useParams, useRouter } from 'next/navigation';
-import Link from 'next/link';
 import LoadingScreen from '@/components/ui/LoadingScreen';
 import { useToast } from '@/contexts/ToastContext';
 import { useConfirm } from '@/contexts/ConfirmContext';
+import { FinanceMonth, Employee } from '@/types';
 
-const API = 'http://localhost:8000/api/admin';
+interface SalaryDetailItem {
+  id: number;
+  total: number | string;
+  notes?: string;
+  created_at: string;
+  type_name?: string;
+  days_count?: number;
+  value?: number;
+  [key: string]: unknown;
+}
+
+interface SalaryDetails {
+  id: number;
+  finance_month_id: number;
+  employee_code: string;
+  is_stoped: number;
+  is_archived: number;
+  added_by?: number;
+  updated_by?: number;
+  total_benefits: string | number;
+  total_deduction: string | number;
+  final_the_net: string | number;
+  emp_name_display?: string;
+  emp_sal?: string | number;
+  emp_job_id?: number;
+  emp_departments_id?: number;
+  day_price?: string | number;
+  sal_cash_or_visa?: number;
+  last_salary_remain_balance?: string | number;
+  motivation?: string | number;
+  reward?: string | number;
+  fixed_allowances?: string | number;
+  changable_allowances?: string | number;
+  additional_days_counter?: string | number;
+  additional_days_total?: string | number;
+  socialinsurancecutmonthly?: string | number;
+  medicalinsurancecutmonthly?: string | number;
+  absence_days_counter?: string | number;
+  absence_days_total?: string | number;
+  sanctions_days_counter?: string | number;
+  sanctions_days_total?: string | number;
+  monthly_loan?: string | number;
+  permanent_loan?: string | number;
+  discount?: string | number;
+  phones?: string | number;
+  archived_date?: string;
+  created_at: string;
+  updated_at?: string;
+  employee?: Employee;
+  benefits?: SalaryDetailItem[];
+  deductions?: SalaryDetailItem[];
+  loans?: SalaryDetailItem[];
+  sanctions?: SalaryDetailItem[];
+  absences?: SalaryDetailItem[];
+  allowances?: SalaryDetailItem[];
+  discounts?: SalaryDetailItem[];
+  rewards?: SalaryDetailItem[];
+}
+
+const API = process.env.NEXT_PUBLIC_API_URL || '';
 
 const MONTHS_AR: Record<number, string> = {
   1: 'يناير', 2: 'فبراير', 3: 'مارس', 4: 'أبريل',
@@ -25,8 +84,8 @@ export default function EmployeeSalaryDetailsPage() {
   const recordId = params?.id as string;
 
   const [loading, setLoading] = useState(true);
-  const [data, setData] = useState<any>(null);
-  const [financeMonth, setFinanceMonth] = useState<any>(null);
+  const [data, setData] = useState<SalaryDetails | null>(null);
+  const [financeMonth, setFinanceMonth] = useState<FinanceMonth | null>(null);
   const [isMonthOpen, setIsMonthOpen] = useState(false);
   const [actionLoading, setActionLoading] = useState(false);
 
@@ -57,8 +116,12 @@ export default function EmployeeSalaryDetailsPage() {
 
   useEffect(() => {
     if (recordId) {
-      fetchData();
+      const timer = setTimeout(() => {
+        fetchData();
+      }, 0);
+      return () => clearTimeout(timer);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [recordId]);
 
   const handleStopSalary = async () => {
@@ -162,7 +225,9 @@ export default function EmployeeSalaryDetailsPage() {
       const result = await res.json();
       if (result.status) {
         showToast(result.message, 'success');
-        router.push(`/admin/employee-salaries/${data.finance_month_id}`);
+        if (data) {
+          router.push(`/admin/employee-salaries/${data.finance_month_id}`);
+        }
       } else {
         showToast(result.message, 'error');
       }
@@ -285,7 +350,7 @@ export default function EmployeeSalaryDetailsPage() {
             <h2 className="text-2xl font-black text-slate-800">تفاصيل راتب الموظف</h2>
             {financeMonth && (
               <p className="text-sm text-slate-500 font-medium">
-                الشهر المالي: {MONTHS_AR[financeMonth.month_id]} لسنة {financeMonth.finance_yr}
+                الشهر المالي: {(financeMonth.month_id !== undefined ? MONTHS_AR[financeMonth.month_id] : '')} لسنة {financeMonth.finance_yr}
               </p>
             )}
           </div>
@@ -385,7 +450,7 @@ export default function EmployeeSalaryDetailsPage() {
           <h1 className="text-2xl font-black text-black">كشف راتب موظف تفصيلي</h1>
           {financeMonth && (
             <p className="text-sm text-slate-700 font-bold mt-1">
-              عن الشهر المالي: {MONTHS_AR[financeMonth.month_id]} لسنة {financeMonth.finance_yr} ({financeMonth.start_date_m} إلى {financeMonth.end_date_m})
+              عن الشهر المالي: {(financeMonth.month_id !== undefined ? MONTHS_AR[financeMonth.month_id] : '')} لسنة {financeMonth.finance_yr} ({financeMonth.start_date_m} إلى {financeMonth.end_date_m})
             </p>
           )}
         </div>
@@ -395,7 +460,7 @@ export default function EmployeeSalaryDetailsPage() {
           <div>
             <span className="block text-xs font-bold text-slate-400 uppercase print:text-slate-700">الموظف</span>
             <p className="text-lg font-black text-slate-800 print:text-black mt-1">
-              {data.emp_name_display || data.emp_name}
+              {data.emp_name_display || data.employee?.emp_name || ''}
             </p>
             <span className="text-sm text-slate-400 font-bold print:text-slate-700">كود الموظف: {data.employee_code}</span>
           </div>
@@ -411,7 +476,7 @@ export default function EmployeeSalaryDetailsPage() {
           <div>
             <span className="block text-xs font-bold text-slate-400 uppercase print:text-slate-700">سعر اليوم / نوع الصرف</span>
             <p className="text-lg font-bold text-slate-700 print:text-black mt-1">
-              {parseFloat(data.day_price || 0).toFixed(2)} {t('currency')} / يوم
+              {parseFloat(String(data.day_price || 0)).toFixed(2)} {t('currency')} / يوم
             </p>
             <span className="text-sm text-slate-400 font-bold print:text-slate-700">
               طريقة الصرف: {data.sal_cash_or_visa == 1 ? 'كاش (نقدي)' : 'فيزا (بنكي)'}
@@ -420,10 +485,10 @@ export default function EmployeeSalaryDetailsPage() {
         </div>
 
         {/* Previous Month Transferred Balance Warning/Note if exists */}
-        {parseFloat(data.last_salary_remain_balance || 0) !== 0 && (
+        {parseFloat(String(data.last_salary_remain_balance || 0)) !== 0 && (
           <div className="m-6 p-4 bg-violet-50 text-violet-700 rounded-2xl border border-violet-100 flex items-center justify-between print:bg-slate-100 print:text-black print:border-black">
             <span className="font-bold text-sm">الرصيد المرحل من الشهر السابق:</span>
-            <span className="font-black text-base">{parseFloat(data.last_salary_remain_balance || 0).toFixed(2)} {t('currency')}</span>
+            <span className="font-black text-base">{parseFloat(String(data.last_salary_remain_balance || 0)).toFixed(2)} {t('currency')}</span>
           </div>
         )}
 
@@ -440,39 +505,39 @@ export default function EmployeeSalaryDetailsPage() {
             <div className="space-y-4">
               <div className="flex justify-between items-center py-2 border-b border-slate-100">
                 <span className="text-slate-500 font-bold print:text-black">الراتب الأساسي</span>
-                <span className="font-black text-slate-800 print:text-black">{parseFloat(data.emp_sal || 0).toFixed(2)} {t('currency')}</span>
+                <span className="font-black text-slate-800 print:text-black">{parseFloat(String(data.emp_sal || 0)).toFixed(2)} {t('currency')}</span>
               </div>
               <div className="flex justify-between items-center py-2 border-b border-slate-100">
                 <span className="text-slate-500 font-bold print:text-black">الحافز الثابت</span>
-                <span className="font-black text-slate-800 print:text-black">{parseFloat(data.motivation || 0).toFixed(2)} {t('currency')}</span>
+                <span className="font-black text-slate-800 print:text-black">{parseFloat(String(data.motivation || 0)).toFixed(2)} {t('currency')}</span>
               </div>
               <div className="flex justify-between items-center py-2 border-b border-slate-100">
                 <span className="text-slate-500 font-bold print:text-black">المكافأة المالية</span>
-                <span className="font-black text-slate-800 print:text-black">{parseFloat(data.reward || 0).toFixed(2)} {t('currency')}</span>
+                <span className="font-black text-slate-800 print:text-black">{parseFloat(String(data.reward || 0)).toFixed(2)} {t('currency')}</span>
               </div>
               <div className="flex justify-between items-center py-2 border-b border-slate-100">
                 <span className="text-slate-500 font-bold print:text-black">البدلات الثابتة</span>
-                <span className="font-black text-slate-800 print:text-black">{parseFloat(data.fixed_allowances || 0).toFixed(2)} {t('currency')}</span>
+                <span className="font-black text-slate-800 print:text-black">{parseFloat(String(data.fixed_allowances || 0)).toFixed(2)} {t('currency')}</span>
               </div>
               <div className="flex justify-between items-center py-2 border-b border-slate-100">
                 <span className="text-slate-500 font-bold print:text-black">البدلات المتغيرة</span>
-                <span className="font-black text-slate-800 print:text-black">{parseFloat(data.changable_allowances || 0).toFixed(2)} {t('currency')}</span>
+                <span className="font-black text-slate-800 print:text-black">{parseFloat(String(data.changable_allowances || 0)).toFixed(2)} {t('currency')}</span>
               </div>
               <div className="flex justify-between items-center py-2 border-b border-slate-100">
                 <div>
                   <span className="text-slate-500 font-bold block print:text-black">أيام إضافية</span>
-                  {parseInt(data.additional_days_counter || 0) > 0 && (
+                  {parseInt(String(data.additional_days_counter || 0)) > 0 && (
                     <span className="text-xs text-slate-400 font-bold print:text-slate-700">عدد الأيام: ({data.additional_days_counter})</span>
                   )}
                 </div>
                 <span className="font-black text-slate-800 print:text-black">
-                  {parseFloat(data.additional_days_total || 0).toFixed(2)} {t('currency')}
+                  {parseFloat(String(data.additional_days_total || 0)).toFixed(2)} {t('currency')}
                 </span>
               </div>
               
               <div className="flex justify-between items-center pt-4 border-t border-emerald-100 font-black text-emerald-800 print:text-black print:border-black">
                 <span className="text-base">إجمالي الاستحقاقات</span>
-                <span className="text-xl">{parseFloat(data.total_benefits || 0).toFixed(2)} {t('currency')}</span>
+                <span className="text-xl">{parseFloat(String(data.total_benefits || 0)).toFixed(2)} {t('currency')}</span>
               </div>
             </div>
           </div>
@@ -487,50 +552,50 @@ export default function EmployeeSalaryDetailsPage() {
             <div className="space-y-4">
               <div className="flex justify-between items-center py-2 border-b border-slate-100">
                 <span className="text-slate-500 font-bold print:text-black">التأمين الاجتماعي</span>
-                <span className="font-black text-slate-800 print:text-black">{parseFloat(data.socialinsurancecutmonthly || 0).toFixed(2)} {t('currency')}</span>
+                <span className="font-black text-slate-800 print:text-black">{parseFloat(String(data.socialinsurancecutmonthly || 0)).toFixed(2)} {t('currency')}</span>
               </div>
               <div className="flex justify-between items-center py-2 border-b border-slate-100">
                 <span className="text-slate-500 font-bold print:text-black">التأمين الطبي</span>
-                <span className="font-black text-slate-800 print:text-black">{parseFloat(data.medicalinsurancecutmonthly || 0).toFixed(2)} {t('currency')}</span>
+                <span className="font-black text-slate-800 print:text-black">{parseFloat(String(data.medicalinsurancecutmonthly || 0)).toFixed(2)} {t('currency')}</span>
               </div>
               <div className="flex justify-between items-center py-2 border-b border-slate-100">
                 <div>
                   <span className="text-slate-500 font-bold block print:text-black">أيام الغياب</span>
-                  {parseInt(data.absence_days_counter || 0) > 0 && (
+                  {parseInt(String(data.absence_days_counter || 0)) > 0 && (
                     <span className="text-xs text-slate-400 font-bold print:text-slate-700">عدد الأيام: ({data.absence_days_counter})</span>
                   )}
                 </div>
-                <span className="font-black text-slate-800 print:text-black">{parseFloat(data.absence_days_total || 0).toFixed(2)} {t('currency')}</span>
+                <span className="font-black text-slate-800 print:text-black">{parseFloat(String(data.absence_days_total || 0)).toFixed(2)} {t('currency')}</span>
               </div>
               <div className="flex justify-between items-center py-2 border-b border-slate-100">
                 <div>
                   <span className="text-slate-500 font-bold block print:text-black">أيام الجزاءات</span>
-                  {parseInt(data.sanctions_days_counter || 0) > 0 && (
+                  {parseInt(String(data.sanctions_days_counter || 0)) > 0 && (
                     <span className="text-xs text-slate-400 font-bold print:text-slate-700">عدد الأيام: ({data.sanctions_days_counter})</span>
                   )}
                 </div>
-                <span className="font-black text-slate-800 print:text-black">{parseFloat(data.sanctions_days_total || 0).toFixed(2)} {t('currency')}</span>
+                <span className="font-black text-slate-800 print:text-black">{parseFloat(String(data.sanctions_days_total || 0)).toFixed(2)} {t('currency')}</span>
               </div>
               <div className="flex justify-between items-center py-2 border-b border-slate-100">
                 <span className="text-slate-500 font-bold print:text-black">سلف شهرية</span>
-                <span className="font-black text-slate-800 print:text-black">{parseFloat(data.monthly_loan || 0).toFixed(2)} {t('currency')}</span>
+                <span className="font-black text-slate-800 print:text-black">{parseFloat(String(data.monthly_loan || 0)).toFixed(2)} {t('currency')}</span>
               </div>
               <div className="flex justify-between items-center py-2 border-b border-slate-100">
                 <span className="text-slate-500 font-bold print:text-black">سلف مستديمة</span>
-                <span className="font-black text-slate-800 print:text-black">{parseFloat(data.permanent_loan || 0).toFixed(2)} {t('currency')}</span>
+                <span className="font-black text-slate-800 print:text-black">{parseFloat(String(data.permanent_loan || 0)).toFixed(2)} {t('currency')}</span>
               </div>
               <div className="flex justify-between items-center py-2 border-b border-slate-100">
                 <span className="text-slate-500 font-bold print:text-black">الخصومات المالية</span>
-                <span className="font-black text-slate-800 print:text-black">{parseFloat(data.discount || 0).toFixed(2)} {t('currency')}</span>
+                <span className="font-black text-slate-800 print:text-black">{parseFloat(String(data.discount || 0)).toFixed(2)} {t('currency')}</span>
               </div>
               <div className="flex justify-between items-center py-2 border-b border-slate-100">
                 <span className="text-slate-500 font-bold print:text-black">فواتير الهواتف</span>
-                <span className="font-black text-slate-800 print:text-black">{parseFloat(data.phones || 0).toFixed(2)} {t('currency')}</span>
+                <span className="font-black text-slate-800 print:text-black">{parseFloat(String(data.phones || 0)).toFixed(2)} {t('currency')}</span>
               </div>
 
               <div className="flex justify-between items-center pt-4 border-t border-rose-100 font-black text-rose-800 print:text-black print:border-black">
                 <span className="text-base">إجمالي الاستقطاعات</span>
-                <span className="text-xl">{parseFloat(data.total_deduction || 0).toFixed(2)} {t('currency')}</span>
+                <span className="text-xl">{parseFloat(String(data.total_deduction || 0)).toFixed(2)} {t('currency')}</span>
               </div>
             </div>
           </div>
@@ -542,9 +607,9 @@ export default function EmployeeSalaryDetailsPage() {
           <div>
             <h4 className="text-lg font-black text-slate-100 print:text-black mb-1">ثالثاً: صافي الراتب المستحق</h4>
             <p className="text-sm text-slate-400 print:text-slate-700">
-              {data.final_the_net > 0 ? (
+              {Number(data.final_the_net) > 0 ? (
                 <span>مبلغ مستحق <strong className="text-emerald-400 print:text-black font-extrabold">لصالح</strong> الموظف</span>
-              ) : data.final_the_net < 0 ? (
+              ) : Number(data.final_the_net) < 0 ? (
                 <span>مبلغ مستحق <strong className="text-rose-400 print:text-black font-extrabold">على</strong> الموظف (مديونية)</span>
               ) : (
                 <span>صافي الراتب متزن تماماً</span>
@@ -555,7 +620,7 @@ export default function EmployeeSalaryDetailsPage() {
           <div className="text-right">
             <span className="text-xs text-slate-400 block uppercase font-bold print:text-slate-700">الصافي النهائي للتسليم</span>
             <p className="text-3xl font-black text-violet-400 print:text-black mt-1">
-              {parseFloat(Math.abs(data.final_the_net || 0).toString()).toFixed(2)} {t('currency')}
+              {parseFloat(String(Math.abs(Number(data.final_the_net || 0)))).toFixed(2)} {t('currency')}
             </p>
           </div>
         </div>

@@ -5,15 +5,22 @@ import Link from 'next/link';
 import LoadingScreen from '@/components/ui/LoadingScreen';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useToast } from '@/contexts/ToastContext';
+import { FinanceMonth, FinanceCalendar } from '@/types';
 
-const API = 'http://localhost:8000/api/admin';
+interface SanctionsMonth extends FinanceMonth {
+  start_date_for_pasma?: string;
+  end_date_for_pasma?: string;
+  number_of_days?: number;
+}
+
+const API = process.env.NEXT_PUBLIC_API_URL || '';
 
 export default function SanctionsDaysPage() {
   const { t } = useLanguage();
   const { showToast } = useToast();
 
-  const [data, setData] = useState<any[]>([]);
-  const [financeYears, setFinanceYears] = useState<any[]>([]);
+  const [data, setData] = useState<SanctionsMonth[]>([]);
+  const [financeYears, setFinanceYears] = useState<FinanceCalendar[]>([]);
   const [loading, setLoading] = useState(true);
   const [filterYear, setFilterYear] = useState('all');
 
@@ -38,21 +45,24 @@ export default function SanctionsDaysPage() {
     }
   };
 
-  useEffect(() => { fetchData(); }, [filterYear]);
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      fetchData();
+    }, 0);
+    return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filterYear]);
 
-  const getMonthLabel = (item: any) => {
+  const getMonthLabel = (item: SanctionsMonth) => {
     const months: Record<number, string> = {
       1: 'يناير', 2: 'فبراير', 3: 'مارس', 4: 'أبريل', 5: 'مايو', 6: 'يونيو',
       7: 'يوليو', 8: 'أغسطس', 9: 'سبتمبر', 10: 'أكتوبر', 11: 'نوفمبر', 12: 'ديسمبر'
     };
-    return months[item.month_id] || item.month_id;
+    const mid = item.month_id;
+    return (mid !== undefined ? months[mid] : '') || mid || '';
   };
 
-  const getRowAction = (item: any) => {
-    if (item.is_open == 2) return 'archived';
-    if (item.is_open == 1) return 'view';
-    return 'pending'; // Sanctions shouldn't be "opened" from here, just viewed or pending.
-  };
+
 
   if (loading) return <LoadingScreen />;
 
@@ -76,7 +86,7 @@ export default function SanctionsDaysPage() {
               onChange={e => setFilterYear(e.target.value)}
               className="px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 outline-none text-slate-700 font-bold transition-all"
             >
-              {financeYears.map((y: any) => (
+              {financeYears.map((y: FinanceCalendar) => (
                 <option key={y.finance_yr} value={y.finance_yr}>{y.finance_yr}</option>
               ))}
             </select>
@@ -101,7 +111,7 @@ export default function SanctionsDaysPage() {
               </tr>
             </thead>
             <tbody>
-              {data.map((item: any) => {
+              {data.map((item: SanctionsMonth) => {
                 return (
                   <tr key={item.id} className={`border-b border-slate-50 transition-colors ${item.is_open == 2 ? 'bg-rose-50/30' : 'hover:bg-slate-50/50'}`}>
                     <td className="px-5 py-4 font-bold text-slate-800">{getMonthLabel(item)}</td>

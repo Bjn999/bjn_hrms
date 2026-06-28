@@ -8,8 +8,22 @@ import LoadingScreen from '@/components/ui/LoadingScreen';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useToast } from '@/contexts/ToastContext';
 import { useConfirm } from '@/contexts/ConfirmContext';
+import { FinanceMonth, Sanction, Employee } from '@/types';
 
-const API = 'http://localhost:8000/api/admin';
+interface SanctionItem extends Sanction {
+  sanctions_type: number;
+  value: number;
+  day_price: number;
+}
+
+interface SanctionsEmployee {
+  employee_code?: string;
+  day_price?: number;
+  emp_name?: string;
+  employee?: Employee;
+}
+
+const API = process.env.NEXT_PUBLIC_API_URL || '';
 
 const SANCTION_TYPES: Record<number, { label: string; color: string }> = {
   1: { label: 'جزاء أيام', color: 'bg-rose-100 text-rose-700' },
@@ -36,9 +50,9 @@ export default function SanctionsDetailPage() {
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [financeMonth, setFinanceMonth] = useState<any>(null);
-  const [sanctions, setSanctions] = useState<any[]>([]);
-  const [employees, setEmployees] = useState<any[]>([]);
+  const [financeMonth, setFinanceMonth] = useState<FinanceMonth | null>(null);
+  const [sanctions, setSanctions] = useState<SanctionItem[]>([]);
+  const [employees, setEmployees] = useState<SanctionsEmployee[]>([]);
   const [isMonthOpen, setIsMonthOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -77,7 +91,13 @@ export default function SanctionsDetailPage() {
     }
   };
 
-  useEffect(() => { fetchData(); }, []);
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      fetchData();
+    }, 0);
+    return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const openAddModal = () => {
     setEditingId(null);
@@ -85,25 +105,25 @@ export default function SanctionsDetailPage() {
     setShowModal(true);
   };
 
-  const openEditModal = (s: any) => {
+  const openEditModal = (s: SanctionItem) => {
     if (s.is_archived == 1) { showToast(t('cannot_edit_archived'), 'error'); return; }
     if (!isMonthOpen) { showToast(t('cannot_edit_closed'), 'error'); return; }
     setEditingId(s.id);
     setForm({
       finance_month_period_id: monthId,
       employee_code: s.employee_code,
-      day_price: s.day_price,
-      sanctions_type: s.sanctions_type,
-      value: s.value,
+      day_price: String(s.day_price),
+      sanctions_type: String(s.sanctions_type),
+      value: String(s.value),
       notes: s.notes || '',
     });
     setShowModal(true);
   };
 
   const handleEmployeeChange = (code: string) => {
-    const emp = employees.find((e: any) => e.employee?.employee_code == code || e.employee_code == code);
+    const emp = employees.find((e: SanctionsEmployee) => e.employee?.employee_code == code || e.employee_code == code);
     const dayPrice = emp?.employee?.day_price || emp?.day_price || '';
-    setForm(f => ({ ...f, employee_code: code, day_price: dayPrice }));
+    setForm(f => ({ ...f, employee_code: code, day_price: String(dayPrice) }));
   };
 
   const handleSave = async () => {
@@ -113,7 +133,7 @@ export default function SanctionsDetailPage() {
     }
 
     if (!editingId) {
-      const exists = sanctions.some((a: any) => String(a.employee_code) === String(form.employee_code));
+      const exists = sanctions.some((a: SanctionItem) => String(a.employee_code) === String(form.employee_code));
       if (exists) {
         const ok = await confirm({ title: 'تنبيه', description: 'هذا الموظف لديه سجل جزاء بالفعل في هذا الشهر. هل تريد الإضافة على أي حال؟', icon: 'warning' });
         if (!ok) return;
@@ -144,7 +164,7 @@ export default function SanctionsDetailPage() {
     }
   };
 
-  const handleDelete = async (s: any) => {
+  const handleDelete = async (s: SanctionItem) => {
     if (s.is_archived == 1) { showToast(t('cannot_delete_archived'), 'error'); return; }
     if (!isMonthOpen) { showToast(t('cannot_delete_closed'), 'error'); return; }
     const ok = await confirm({ title: t('confirm_delete'), description: 'هل أنت متأكد من حذف هذا الجزاء؟', icon: 'danger' });
@@ -159,7 +179,7 @@ export default function SanctionsDetailPage() {
     }
   };
 
-  const filteredSanctions = sanctions.filter((s: any) => {
+  const filteredSanctions = sanctions.filter((s: SanctionItem) => {
     if (!searchQuery) return true;
     const query = searchQuery.toLowerCase();
     const empName = s.employee?.emp_name?.toLowerCase() || '';
@@ -171,8 +191,8 @@ export default function SanctionsDetailPage() {
     return empName.includes(query) || empCode.includes(query) || typeLabel.includes(query) || notes.includes(query) || value.includes(query) || total.includes(query);
   });
 
-  const total = filteredSanctions.reduce((sum: number, s: any) => sum + parseFloat(s.total || 0), 0);
-  const days = filteredSanctions.reduce((sum: number, s: any) => sum + parseFloat(s.value || 0), 0);
+  const total = filteredSanctions.reduce((sum: number, s: SanctionItem) => sum + parseFloat((s.total || 0).toString()), 0);
+  const days = filteredSanctions.reduce((sum: number, s: SanctionItem) => sum + parseFloat((s.value || 0).toString()), 0);
 
   if (loading) return <LoadingScreen />;
 
@@ -288,7 +308,7 @@ export default function SanctionsDetailPage() {
               </tr>
             </thead>
             <tbody>
-              {filteredSanctions.map((s: any) => {
+              {filteredSanctions.map((s: SanctionItem) => {
                 const typeInfo = SANCTION_TYPES[s.sanctions_type] || { label: '-', color: 'bg-slate-100 text-slate-500' };
                 const isArchived = s.is_archived == 1;
                 const canAct = isMonthOpen && !isArchived;
@@ -315,14 +335,14 @@ export default function SanctionsDetailPage() {
                       <span className={`px-2 py-1 rounded-full text-xs font-bold ${typeInfo.color}`}>{typeInfo.label}</span>
                     </td>
                     <td className="px-5 py-4 font-bold text-slate-700">{s.value}</td>
-                    <td className="px-5 py-4 font-bold text-rose-600">{parseFloat(s.total).toFixed(2)}</td>
+                    <td className="px-5 py-4 font-bold text-rose-600">{parseFloat(String(s.total)).toFixed(2)}</td>
                     <td className="px-5 py-4 text-xs font-bold text-slate-500">
                       <div>{new Date(s.created_at).toLocaleDateString('ar-SA')}</div>
                       <div>{new Date(s.created_at).toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' })}</div>
                       <div className="text-emerald-600 mt-1">{s.added?.name}</div>
                     </td>
                     <td className="px-5 py-4 text-xs font-bold text-slate-500">
-                      {s.updated_by > 0 && s.updated_at ? (
+                      {s.updated_by && s.updated_by > 0 && s.updated_at ? (
                         <>
                           <div>{new Date(s.updated_at).toLocaleDateString('ar-SA')}</div>
                           <div>{new Date(s.updated_at).toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' })}</div>
@@ -391,7 +411,7 @@ export default function SanctionsDetailPage() {
                   className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none text-slate-700 font-bold focus:ring-2 focus:ring-emerald-500/20"
                 >
                   <option value="">{t('select_employee')}</option>
-                  {employees.map((e: any) => (
+                  {employees.map((e: SanctionsEmployee) => (
                     <option key={e.employee_code || e.employee?.employee_code} value={e.employee_code || e.employee?.employee_code}>
                       {e.employee?.emp_name || e.emp_name}
                     </option>

@@ -6,6 +6,13 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { useToast } from '@/contexts/ToastContext';
 import { useConfirm } from '@/contexts/ConfirmContext';
 import LoadingScreen from '@/components/ui/LoadingScreen';
+import { JobCategory, User } from '@/types';
+
+interface JobCategoryItem extends JobCategory {
+  counterUsed?: number;
+  added?: User;
+  updatedby?: User;
+}
 
 export default function JobsCategoriesPage() {
   const { t } = useLanguage();
@@ -13,27 +20,22 @@ export default function JobsCategoriesPage() {
   const { confirm } = useConfirm();
   
   const [mounted, setMounted] = useState(false);
-  const [data, setData] = useState([]);
+  const [data, setData] = useState<JobCategoryItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [modalType, setModalType] = useState('add');
   const [editingId, setEditingId] = useState<number | null>(null);
-  const [editingItem, setEditingItem] = useState<any>(null);
+  const [editingItem, setEditingItem] = useState<JobCategoryItem | null>(null);
 
   const [formData, setFormData] = useState({
     name: '',
     active: '1'
   });
 
-  useEffect(() => {
-    setMounted(true);
-    fetchData();
-  }, []);
-
   const fetchData = async () => {
     try {
       const token = localStorage.getItem('admin_token');
-      const res = await fetch('http://localhost:8000/api/admin/jobs-categories', {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || ''}/jobs-categories`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Accept': 'application/json'
@@ -43,14 +45,23 @@ export default function JobsCategoriesPage() {
       if (result.status) {
         setData(result.data);
       }
-    } catch (e) {
+    } catch {
       showToast(t('fetch_failed'), 'error');
     } finally {
       setLoading(false);
     }
   };
 
-  const handleOpenModal = (type: string, item: any = null) => {
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setMounted(true);
+      fetchData();
+    }, 0);
+    return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const handleOpenModal = (type: string, item: JobCategoryItem | null = null) => {
     setModalType(type);
     if (type === 'edit' && item) {
       setEditingId(item.id);
@@ -75,8 +86,8 @@ export default function JobsCategoriesPage() {
     try {
       const token = localStorage.getItem('admin_token');
       const url = modalType === 'add' 
-        ? 'http://localhost:8000/api/admin/jobs-categories' 
-        : `http://localhost:8000/api/admin/jobs-categories/${editingId}`;
+        ? `${process.env.NEXT_PUBLIC_API_URL || ''}/jobs-categories` 
+        : `${process.env.NEXT_PUBLIC_API_URL || ''}/jobs-categories/${editingId}`;
       const method = modalType === 'add' ? 'POST' : 'PUT';
 
       const res = await fetch(url, {
@@ -97,7 +108,7 @@ export default function JobsCategoriesPage() {
       } else {
         showToast(result.message, 'error');
       }
-    } catch (e) {
+    } catch {
       showToast(t('conn_error'), 'error');
     }
   };
@@ -112,7 +123,7 @@ export default function JobsCategoriesPage() {
 
     try {
       const token = localStorage.getItem('admin_token');
-      const res = await fetch(`http://localhost:8000/api/admin/jobs-categories/${id}`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || ''}/jobs-categories/${id}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -126,7 +137,7 @@ export default function JobsCategoriesPage() {
       } else {
         showToast(result.message, 'error');
       }
-    } catch (e) {
+    } catch {
       showToast(t('conn_error'), 'error');
     }
   };
@@ -163,7 +174,7 @@ export default function JobsCategoriesPage() {
                 </tr>
               </thead>
               <tbody>
-                {data.map((item: any) => (
+                {data.map((item: JobCategoryItem) => (
                   <tr key={item.id} className="border-b border-slate-50 hover:bg-slate-50/50 transition-colors">
                     <td className="px-6 py-4 font-bold text-slate-900">{item.name}</td>
                     <td className="px-6 py-4">
@@ -181,7 +192,7 @@ export default function JobsCategoriesPage() {
                       {item.updatedby ? (
                         <div className="flex flex-col">
                           <span className="text-amber-600 text-xs font-black">{item.updatedby.name}</span>
-                          <span className="text-[10px] text-slate-500">{new Date(item.updated_at).toLocaleString('ar-EG')}</span>
+                          <span className="text-[10px] text-slate-500">{item.updated_at ? new Date(item.updated_at).toLocaleString('ar-EG') : '---'}</span>
                         </div>
                       ) : (
                         <span className="text-slate-400 text-xs font-bold italic">{t('not_updated')}</span>
@@ -191,7 +202,7 @@ export default function JobsCategoriesPage() {
                       <button onClick={() => handleOpenModal('edit', item)} className="p-2 text-amber-500 hover:bg-amber-50 rounded-lg transition-colors">
                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
                       </button>
-                      {!(item.counterUsed > 0) && (
+                      {!(item.counterUsed && item.counterUsed > 0) && (
                         <button onClick={() => handleDelete(item.id)} className="p-2 text-rose-500 hover:bg-rose-50 rounded-lg transition-colors">
                           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
                         </button>
@@ -221,13 +232,13 @@ export default function JobsCategoriesPage() {
                   name="active" 
                   value={formData.active} 
                   onChange={(e) => setFormData({...formData, active: e.target.value})} 
-                  disabled={modalType === 'edit' && editingItem?.counterUsed > 0}
-                  className={`w-full px-4 py-3 bg-white border-2 border-slate-300 rounded-xl text-slate-950 font-black shadow-sm focus:ring-2 focus:ring-indigo-500/50 outline-none transition-all ${modalType === 'edit' && editingItem?.counterUsed > 0 ? 'bg-slate-50 cursor-not-allowed opacity-70' : ''}`}
+                  disabled={modalType === 'edit' && !!(editingItem?.counterUsed && editingItem.counterUsed > 0)}
+                  className={`w-full px-4 py-3 bg-white border-2 border-slate-300 rounded-xl text-slate-950 font-black shadow-sm focus:ring-2 focus:ring-indigo-500/50 outline-none transition-all ${modalType === 'edit' && !!(editingItem?.counterUsed && editingItem.counterUsed > 0) ? 'bg-slate-50 cursor-not-allowed opacity-70' : ''}`}
                 >
                   <option value="1">{t('active')}</option>
                   <option value="0">{t('inactive')}</option>
                 </select>
-                {modalType === 'edit' && editingItem?.counterUsed > 0 && (
+                {modalType === 'edit' && !!(editingItem?.counterUsed && editingItem.counterUsed > 0) && (
                   <p className="mt-2 text-rose-600 text-xs font-bold flex items-center gap-1 text-right">
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
                     لا يمكن تعطيله لأنه مستخدم في بيانات أحد الموظفين

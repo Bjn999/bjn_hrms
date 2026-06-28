@@ -6,6 +6,114 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { useToast } from '@/contexts/ToastContext';
 import LoadingScreen from '@/components/ui/LoadingScreen';
 
+interface SettingItem {
+  id: number | string;
+  name: string;
+  type?: number;
+  from_time?: string;
+  to_time?: string;
+  country_id?: number | string;
+  governorate_id?: number | string;
+  [key: string]: unknown;
+}
+
+interface EmployeeSettings {
+  branches: SettingItem[];
+  departments: SettingItem[];
+  jobs: SettingItem[];
+  qualifications: SettingItem[];
+  nationalities: SettingItem[];
+  religions: SettingItem[];
+  blood_groups: SettingItem[];
+  countries: SettingItem[];
+  governorates: SettingItem[];
+  cities: SettingItem[];
+  shifts: SettingItem[];
+  resignations: SettingItem[];
+  languages: SettingItem[];
+  social_status: SettingItem[];
+  military_status: SettingItem[];
+  driving_license_types: SettingItem[];
+}
+
+interface EmployeeFormData {
+  zketo_code: string;
+  emp_name: string;
+  emp_gender: string;
+  branch_id: string;
+  qualifications_id: string;
+  qualifications_year: string;
+  graduation_estimate: string;
+  graduation_specialization: string;
+  emp_email: string;
+  emp_birth_date: string;
+  emp_national_identity: string;
+  emp_end_identity_date: string;
+  emp_identity_place: string;
+  blood_group_id: string;
+  emp_nationality_id: string;
+  emp_lang_id: string;
+  emp_social_status_id: string;
+  children_number: number;
+  religion_id: string;
+  country_id: string;
+  governorate_id: string;
+  city_id: string;
+  staies_address: string;
+  emp_home_tel: string;
+  emp_work_tel: string;
+  emp_military_id: string;
+  emp_military_date_from: string;
+  emp_military_date_to: string;
+  emp_military_weapon: string;
+  exemption_date: string;
+  exemption_reason: string;
+  postponement_reason: string;
+  does_has_driving_license: string;
+  driving_license_num: string;
+  driving_license_type_id: string;
+  has_relatives: string;
+  relatives_details: string;
+  is_disabilities_processes: string;
+  disabilities_processes: string;
+  notes: string;
+  urgent_person_details: string;
+  emp_start_date: string;
+  functional_status: string;
+  emp_departments_id: string;
+  emp_job_id: string;
+  does_has_attendance: string;
+  is_has_fixed_shift: string;
+  shift_type_id: string;
+  daily_work_hour: string;
+  emp_sal: string;
+  day_price: string;
+  sal_cash_or_visa: string;
+  bank_number_account: string;
+  motivation_type: string;
+  motivation: string;
+  is_social_insurance: string;
+  social_insurance_number: string;
+  social_insurance_cut_monthly: string;
+  is_medical_insurance: string;
+  medical_insurance_number: string;
+  medical_insurance_cut_monthly: string;
+  is_active_for_vaccation: string;
+  does_has_fixed_allowance: string;
+  emp_cafel: string;
+  emp_pasport_no: string;
+  emp_pasport_place: string;
+  emp_passport_exp: string;
+  home_address: string;
+  resignation_id: string;
+  resignation_date: string;
+  resignation_cause: string;
+  is_sensitive_manager_data: string;
+  emp_photo: File | null;
+  emp_cv: File | null;
+  [key: string]: unknown;
+}
+
 export default function CreateEmployeePage() {
   const router = useRouter();
   const { t } = useLanguage();
@@ -13,7 +121,7 @@ export default function CreateEmployeePage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
-  const [settings, setSettings] = useState<any>({
+  const [settings, setSettings] = useState<EmployeeSettings>({
     branches: [],
     departments: [],
     jobs: [],
@@ -32,7 +140,7 @@ export default function CreateEmployeePage() {
     driving_license_types: []
   });
 
-  const [formData, setFormData] = useState<any>({
+  const [formData, setFormData] = useState<EmployeeFormData>({
     zketo_code: '',
     emp_name: '',
     emp_gender: '',
@@ -73,6 +181,7 @@ export default function CreateEmployeePage() {
     is_disabilities_processes: '0',
     disabilities_processes: '',
     notes: '',
+    urgent_person_details: '',
     emp_start_date: '',
     functional_status: '1',
     emp_departments_id: '',
@@ -108,52 +217,57 @@ export default function CreateEmployeePage() {
     emp_cv: null
   });
 
-  useEffect(() => {
-    fetchSettings();
-  }, []);
-
   const fetchSettings = async () => {
     try {
       const token = localStorage.getItem('admin_token');
-      const res = await fetch('http://localhost:8000/api/admin/employees/required-data', {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || ''}/employees/required-data`, {
         headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/json' }
       });
       const result = await res.json();
       if (result.status) {
         setSettings(result.data);
       }
-    } catch (e) {
+    } catch {
       showToast(t('fetch_failed'), 'error');
     } finally {
       setLoading(false);
     }
   };
 
-  const handleChange = (e: any) => {
-    const { name, value, type, files } = e.target;
-    if (type === 'file') {
-      setFormData((prev: any) => ({ ...prev, [name]: files[0] }));
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      fetchSettings();
+    }, 0);
+    return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
+    const target = e.target as HTMLInputElement;
+    const { name, value, type, files } = target;
+    if (type === 'file' && files) {
+      setFormData((prev: EmployeeFormData) => ({ ...prev, [name]: files[0] }));
     } else {
-      setFormData((prev: any) => ({ ...prev, [name]: value }));
+      setFormData((prev: EmployeeFormData) => ({ ...prev, [name]: value }));
     }
   };
 
-  const handleSubmit = async (e: any) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSaving(true);
     try {
       const token = localStorage.getItem('admin_token');
       
       const payload = new FormData();
-        Object.keys(formData).forEach(key => {
-          const val = formData[key];
-          if (val !== null && val !== undefined && val !== '') {
-            if (typeof val === 'object' && !(val instanceof File)) return;
-            payload.append(key, val);
-          }
-        });
+      Object.keys(formData).forEach(key => {
+        const val = formData[key];
+        if (val !== null && val !== undefined && val !== '') {
+          if (typeof val === 'object' && !(val instanceof File)) return;
+          payload.append(key, typeof val === 'number' ? String(val) : (val as string | Blob));
+        }
+      });
 
-      const res = await fetch('http://localhost:8000/api/admin/employees', {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || ''}/employees`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -168,7 +282,7 @@ export default function CreateEmployeePage() {
       } else {
         showToast(result.message, 'error');
       }
-    } catch (e) {
+    } catch {
       showToast(t('update_error'), 'error');
     } finally {
       setSaving(false);
@@ -221,7 +335,7 @@ export default function CreateEmployeePage() {
             <label className={labelClass}>{t('branch')} <span className="text-rose-500">*</span></label>
             <select name="branch_id" value={formData.branch_id} onChange={handleChange} className={inputClass} required>
               <option value="">{t('select_option')}</option>
-              {settings.branches.map((item: any) => (
+              {settings.branches.map((item: SettingItem) => (
                 <option key={item.id} value={String(item.id)}>{item.name}</option>
               ))}
             </select>
@@ -230,7 +344,7 @@ export default function CreateEmployeePage() {
             <label className={labelClass}>{t('qualification')}</label>
             <select name="qualifications_id" value={formData.qualifications_id} onChange={handleChange} className={inputClass}>
               <option value="">{t('select_option')}</option>
-              {settings.qualifications.map((item: any) => (
+              {settings.qualifications.map((item: SettingItem) => (
                 <option key={item.id} value={String(item.id)}>{item.name}</option>
               ))}
             </select>
@@ -277,7 +391,7 @@ export default function CreateEmployeePage() {
             <label className={labelClass}>{t('blood_group')}</label>
             <select name="blood_group_id" value={formData.blood_group_id} onChange={handleChange} className={inputClass}>
               <option value="">{t('select_option')}</option>
-              {settings.blood_groups.map((item: any) => (
+              {settings.blood_groups.map((item: SettingItem) => (
                 <option key={item.id} value={String(item.id)}>{item.name}</option>
               ))}
             </select>
@@ -286,7 +400,7 @@ export default function CreateEmployeePage() {
             <label className={labelClass}>{t('nationality')} <span className="text-rose-500">*</span></label>
             <select name="emp_nationality_id" value={formData.emp_nationality_id} onChange={handleChange} className={inputClass} required>
               <option value="">{t('select_option')}</option>
-              {settings.nationalities.map((item: any) => (
+              {settings.nationalities.map((item: SettingItem) => (
                 <option key={item.id} value={String(item.id)}>{item.name}</option>
               ))}
             </select>
@@ -295,7 +409,7 @@ export default function CreateEmployeePage() {
             <label className={labelClass}>{t('native_language')} <span className="text-rose-500">*</span></label>
             <select name="emp_lang_id" value={formData.emp_lang_id} onChange={handleChange} className={inputClass} required>
               <option value="">{t('select_option')}</option>
-              {settings.languages.map((item: any) => (
+              {settings.languages.map((item: SettingItem) => (
                 <option key={item.id} value={String(item.id)}>{item.name}</option>
               ))}
             </select>
@@ -304,7 +418,7 @@ export default function CreateEmployeePage() {
             <label className={labelClass}>{t('social_status')} <span className="text-rose-500">*</span></label>
             <select name="emp_social_status_id" value={formData.emp_social_status_id} onChange={handleChange} className={inputClass} required>
               <option value="">{t('select_option')}</option>
-              {settings.social_status.map((item: any) => (
+              {settings.social_status.map((item: SettingItem) => (
                 <option key={item.id} value={String(item.id)}>{item.name}</option>
               ))}
             </select>
@@ -319,7 +433,7 @@ export default function CreateEmployeePage() {
             <label className={labelClass}>{t('religion')} <span className="text-rose-500">*</span></label>
             <select name="religion_id" value={formData.religion_id} onChange={handleChange} className={inputClass} required>
               <option value="">{t('select_option')}</option>
-              {settings.religions.map((item: any) => (
+              {settings.religions.map((item: SettingItem) => (
                 <option key={item.id} value={String(item.id)}>{item.name}</option>
               ))}
             </select>
@@ -328,7 +442,7 @@ export default function CreateEmployeePage() {
             <label className={labelClass}>{t('country')} <span className="text-rose-500">*</span></label>
             <select name="country_id" value={formData.country_id} onChange={handleChange} className={inputClass} required>
               <option value="">{t('select_option')}</option>
-              {settings.countries.map((item: any) => (
+              {settings.countries.map((item: SettingItem) => (
                 <option key={item.id} value={String(item.id)}>{item.name}</option>
               ))}
             </select>
@@ -337,7 +451,7 @@ export default function CreateEmployeePage() {
             <label className={labelClass}>{t('governorate')}</label>
             <select name="governorate_id" value={formData.governorate_id} onChange={handleChange} className={inputClass}>
               <option value="">{t('select_option')}</option>
-              {settings.governorates.filter((g:any) => String(g.country_id) == String(formData.country_id)).map((item: any) => (
+              {settings.governorates.filter((g: SettingItem) => String(g.country_id) == String(formData.country_id)).map((item: SettingItem) => (
                 <option key={item.id} value={String(item.id)}>{item.name}</option>
               ))}
             </select>
@@ -346,7 +460,7 @@ export default function CreateEmployeePage() {
             <label className={labelClass}>{t('center')}</label>
             <select name="city_id" value={formData.city_id} onChange={handleChange} className={inputClass}>
               <option value="">{t('select_option')}</option>
-              {settings.cities.filter((c:any) => String(c.governorate_id) == String(formData.governorate_id)).map((item: any) => (
+              {settings.cities.filter((c: SettingItem) => String(c.governorate_id) == String(formData.governorate_id)).map((item: SettingItem) => (
                 <option key={item.id} value={String(item.id)}>{item.name}</option>
               ))}
             </select>
@@ -368,7 +482,7 @@ export default function CreateEmployeePage() {
             <label className={labelClass}>{t('military_status')}</label>
             <select name="emp_military_id" value={formData.emp_military_id} onChange={handleChange} className={inputClass}>
               <option value="">{t('select_option')}</option>
-              {settings.military_status.map((item: any) => (
+              {settings.military_status.map((item: SettingItem) => (
                 <option key={item.id} value={String(item.id)}>{item.name}</option>
               ))}
             </select>
@@ -426,7 +540,7 @@ export default function CreateEmployeePage() {
                 <label className={labelClass}>{t('driving_license_type')} <span className="text-rose-500">*</span></label>
                 <select name="driving_license_type_id" value={formData.driving_license_type_id} onChange={handleChange} className={inputClass} required>
                   <option value="">{t('select_option')}</option>
-                  {settings.driving_license_types.map((item: any) => (
+                  {settings.driving_license_types.map((item: SettingItem) => (
                     <option key={item.id} value={String(item.id)}>{item.name}</option>
                   ))}
                 </select>
@@ -489,7 +603,7 @@ export default function CreateEmployeePage() {
             <label className={labelClass}>{t('department')} <span className="text-rose-500">*</span></label>
             <select name="emp_departments_id" value={formData.emp_departments_id} onChange={handleChange} className={inputClass} required>
               <option value="">{t('select_option')}</option>
-              {settings.departments.map((item: any) => (
+              {settings.departments.map((item: SettingItem) => (
                 <option key={item.id} value={String(item.id)}>{item.name}</option>
               ))}
             </select>
@@ -498,7 +612,7 @@ export default function CreateEmployeePage() {
             <label className={labelClass}>{t('job')} <span className="text-rose-500">*</span></label>
             <select name="emp_job_id" value={formData.emp_job_id} onChange={handleChange} className={inputClass} required>
               <option value="">{t('select_option')}</option>
-              {settings.jobs.map((item: any) => (
+              {settings.jobs.map((item: SettingItem) => (
                 <option key={item.id} value={String(item.id)}>{item.name}</option>
               ))}
             </select>
@@ -524,7 +638,7 @@ export default function CreateEmployeePage() {
               <label className={labelClass}>{t('shift_type')} <span className="text-rose-500">*</span></label>
               <select name="shift_type_id" value={formData.shift_type_id} onChange={handleChange} className={inputClass} required>
                 <option value="">{t('select_option')}</option>
-                {settings.shifts.map((item: any) => (
+                {settings.shifts.map((item: SettingItem) => (
                   <option key={item.id} value={String(item.id)}>
                     {item.type == 1 ? t('morning_shift') : t('evening_shift')} ({item.from_time} - {item.to_time})
                   </option>
@@ -668,7 +782,7 @@ export default function CreateEmployeePage() {
             <label className={labelClass}>{t('resignation_id')}</label>
             <select name="resignation_id" value={formData.resignation_id} onChange={handleChange} className={inputClass}>
               <option value="">{t('select_option')}</option>
-              {settings.resignations.map((item: any) => (
+              {settings.resignations.map((item: SettingItem) => (
                 <option key={item.id} value={String(item.id)}>{item.name}</option>
               ))}
             </select>

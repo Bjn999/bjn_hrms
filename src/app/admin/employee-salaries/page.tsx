@@ -5,15 +5,16 @@ import Link from 'next/link';
 import LoadingScreen from '@/components/ui/LoadingScreen';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useToast } from '@/contexts/ToastContext';
+import { FinanceMonth, FinanceCalendar } from '@/types';
 
-const API = 'http://localhost:8000/api/admin';
+const API = process.env.NEXT_PUBLIC_API_URL || '';
 
 export default function EmployeeSalariesPage() {
   const { t } = useLanguage();
   const { showToast } = useToast();
 
-  const [data, setData] = useState<any[]>([]);
-  const [financeYears, setFinanceYears] = useState<any[]>([]);
+  const [data, setData] = useState<FinanceMonth[]>([]);
+  const [financeYears, setFinanceYears] = useState<FinanceCalendar[]>([]);
   const [loading, setLoading] = useState(true);
   const [filterYear, setFilterYear] = useState('all');
 
@@ -38,27 +39,21 @@ export default function EmployeeSalariesPage() {
   };
 
   useEffect(() => {
-    fetchData();
+    const timer = setTimeout(() => {
+      fetchData();
+    }, 0);
+    return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filterYear]);
 
-  const getRowAction = (item: any) => {
-    const yearIsOpen = item.currentYear?.is_open == 1;
-    const noOtherMonthOpen = item.counterOpenMonth === 0;
-    const noPreviousPending = item.counterPreviousMonthWaitingOpen === 0;
-
-    if (item.is_open == 2) return 'archived';
-    if (item.is_open == 1) return 'view';
-    if (item.is_open == 0 && yearIsOpen && noOtherMonthOpen && noPreviousPending) return 'open';
-    return 'pending';
-  };
-
-  const getMonthLabel = (item: any) => {
+  const getMonthLabel = (item: FinanceMonth) => {
     const monthsAr: Record<number, string> = {
       1: 'يناير', 2: 'فبراير', 3: 'مارس', 4: 'أبريل',
       5: 'مايو', 6: 'يونيو', 7: 'يوليو', 8: 'أغسطس',
       9: 'سبتمبر', 10: 'أكتوبر', 11: 'نوفمبر', 12: 'ديسمبر'
     };
-    return monthsAr[item.month_id] || item.month_id;
+    const mid = item.month_id;
+    return (mid !== undefined ? monthsAr[mid] : '') || mid || '';
   };
 
   if (loading && data.length === 0) return <LoadingScreen />;
@@ -82,7 +77,7 @@ export default function EmployeeSalariesPage() {
               className="px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none text-slate-700 font-bold focus:ring-2 focus:ring-violet-500/20 transition-all"
             >
               <option value="all">جميع السنوات</option>
-              {financeYears.map((y: any) => (
+              {financeYears.map((y: FinanceCalendar) => (
                 <option key={y.finance_yr} value={y.finance_yr}>{y.finance_yr}</option>
               ))}
             </select>
@@ -106,7 +101,7 @@ export default function EmployeeSalariesPage() {
               </tr>
             </thead>
             <tbody>
-              {data.map((item: any) => {
+              {data.map((item: FinanceMonth) => {
                 return (
                   <tr key={item.id} className={`border-b border-slate-50 transition-colors ${item.is_open == 2 ? 'bg-rose-50/30' : 'hover:bg-slate-50/50'}`}>
                     <td className="px-5 py-4 font-bold text-slate-800">{getMonthLabel(item)}</td>

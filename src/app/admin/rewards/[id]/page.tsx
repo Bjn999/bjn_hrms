@@ -2,14 +2,25 @@
 
 import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import LoadingScreen from '@/components/ui/LoadingScreen';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useToast } from '@/contexts/ToastContext';
 import { useConfirm } from '@/contexts/ConfirmContext';
+import { FinanceMonth, Reward, Employee, RewardType } from '@/types';
 
-const API = 'http://localhost:8000/api/admin';
+interface RewardItem extends Reward {
+  additions_type_id: number;
+}
+
+interface RewardsEmployee {
+  employee_code?: string;
+  emp_name?: string;
+  employee?: Employee;
+}
+
+const API = process.env.NEXT_PUBLIC_API_URL || '';
 
 const emptyForm = {
   finance_month_period_id: '',
@@ -24,15 +35,14 @@ export default function RewardsDetailPage() {
   const { showToast } = useToast();
   const { confirm } = useConfirm();
   const params = useParams();
-  const router = useRouter();
   const monthId = params?.id as string;
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [financeMonth, setFinanceMonth] = useState<any>(null);
-  const [rewards, setRewards] = useState<any[]>([]);
-  const [employees, setEmployees] = useState<any[]>([]);
-  const [types, setTypes] = useState<any[]>([]);
+  const [financeMonth, setFinanceMonth] = useState<FinanceMonth | null>(null);
+  const [rewards, setRewards] = useState<RewardItem[]>([]);
+  const [employees, setEmployees] = useState<RewardsEmployee[]>([]);
+  const [types, setTypes] = useState<RewardType[]>([]);
   const [isMonthOpen, setIsMonthOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -67,7 +77,13 @@ export default function RewardsDetailPage() {
     }
   };
 
-  useEffect(() => { fetchData(); }, []);
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      fetchData();
+    }, 0);
+    return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const openAddModal = () => {
     setEditingId(null);
@@ -75,15 +91,15 @@ export default function RewardsDetailPage() {
     setShowModal(true);
   };
 
-  const openEditModal = (a: any) => {
+  const openEditModal = (a: RewardItem) => {
     if (a.is_archived == 1) { showToast(t('cannot_edit_archived'), 'error'); return; }
     if (!isMonthOpen) { showToast(t('cannot_edit_closed'), 'error'); return; }
     setEditingId(a.id);
     setForm({
       finance_month_period_id: monthId,
       employee_code: a.employee_code,
-      additions_type_id: a.additions_type_id,
-      total: a.total,
+      additions_type_id: String(a.additions_type_id),
+      total: String(a.total),
       notes: a.notes || '',
     });
     setShowModal(true);
@@ -100,7 +116,7 @@ export default function RewardsDetailPage() {
     }
 
     if (!editingId) {
-      const exists = rewards.some((a: any) => String(a.employee_code) === String(form.employee_code) && String(a.additions_type_id) === String(form.additions_type_id));
+      const exists = rewards.some((a: RewardItem) => String(a.employee_code) === String(form.employee_code) && String(a.additions_type_id) === String(form.additions_type_id));
       if (exists) {
         const ok = await confirm({ title: 'تنبيه', description: 'هذا الموظف لديه مكافأة من نفس النوع في هذا الشهر. هل تريد الإضافة على أي حال؟', icon: 'warning' });
         if (!ok) return;
@@ -131,7 +147,7 @@ export default function RewardsDetailPage() {
     }
   };
 
-  const handleDelete = async (a: any) => {
+  const handleDelete = async (a: RewardItem) => {
     if (a.is_archived == 1) { showToast(t('cannot_delete_archived'), 'error'); return; }
     if (!isMonthOpen) { showToast(t('cannot_delete_closed'), 'error'); return; }
     const ok = await confirm({ title: t('confirm_delete'), description: 'هل أنت متأكد من حذف المكافأة؟', icon: 'danger' });
@@ -146,19 +162,19 @@ export default function RewardsDetailPage() {
     }
   };
 
-  const filteredRewards = rewards.filter((a: any) => {
+  const filteredRewards = rewards.filter((a: RewardItem) => {
     if (!searchQuery) return true;
     const query = searchQuery.toLowerCase();
     const empName = a.employee?.emp_name?.toLowerCase() || '';
     const empCode = a.employee_code?.toString() || '';
     const notes = a.notes?.toLowerCase() || '';
     const total = a.total?.toString() || '';
-    const typeObj = types.find((t: any) => t.id === a.additions_type_id);
+    const typeObj = types.find((t: RewardType) => t.id === a.additions_type_id);
     const typeName = typeObj?.name?.toLowerCase() || '';
     return empName.includes(query) || empCode.includes(query) || notes.includes(query) || total.includes(query) || typeName.includes(query);
   });
 
-  const total = filteredRewards.reduce((sum: number, a: any) => sum + parseFloat(a.total || 0), 0);
+  const total = filteredRewards.reduce((sum: number, a: RewardItem) => sum + parseFloat((a.total || 0).toString()), 0);
 
   if (loading) return <LoadingScreen />;
 
@@ -263,12 +279,12 @@ export default function RewardsDetailPage() {
               </tr>
             </thead>
             <tbody>
-              {filteredRewards.map((a: any) => {
+              {filteredRewards.map((a: RewardItem) => {
                 const isArchived = a.is_archived == 1;
                 const canAct = isMonthOpen && !isArchived;
-                const emp = employees.find((e: any) => String(e.employee_code) === String(a.employee_code));
+                const emp = employees.find((e: RewardsEmployee) => String(e.employee_code) === String(a.employee_code));
                 const empName = a.employee?.emp_name || emp?.emp_name || a.employee_code;
-                const typeName = types.find((t: any) => t.id == a.additions_type_id)?.name || 'غير محدد';
+                const typeName = types.find((t: RewardType) => t.id == a.additions_type_id)?.name || 'غير محدد';
                 
                 return (
                   <tr key={a.id} className={`border-b border-slate-50 transition-colors ${isArchived ? 'opacity-60 bg-slate-50/30' : 'hover:bg-slate-50/50'}`}>
@@ -292,14 +308,14 @@ export default function RewardsDetailPage() {
                     <td className="px-5 py-4 font-bold text-indigo-600 bg-indigo-50/30 rounded-xl">
                       {typeName}
                     </td>
-                    <td className="px-5 py-4 font-bold text-emerald-600 text-base">{parseFloat(a.total).toFixed(2)}</td>
+                    <td className="px-5 py-4 font-bold text-emerald-600 text-base">{Number(a.total).toFixed(2)}</td>
                     <td className="px-5 py-4 text-xs font-bold text-slate-500">
                       <div>{new Date(a.created_at).toLocaleDateString('ar-SA')}</div>
                       <div>{new Date(a.created_at).toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' })}</div>
                       <div className="text-emerald-600 mt-1">{a.added?.name}</div>
                     </td>
                     <td className="px-5 py-4 text-xs font-bold text-slate-500">
-                      {a.updated_by > 0 && a.updated_at ? (
+                      {a.updated_by && a.updated_by > 0 && a.updated_at ? (
                         <>
                           <div>{new Date(a.updated_at).toLocaleDateString('ar-SA')}</div>
                           <div>{new Date(a.updated_at).toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' })}</div>
@@ -366,7 +382,7 @@ export default function RewardsDetailPage() {
                   className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none text-slate-700 font-bold focus:ring-2 focus:ring-indigo-500/20"
                 >
                   <option value="">{t('select_employee')}</option>
-                  {employees.map((e: any) => (
+                  {employees.map((e: RewardsEmployee) => (
                     <option key={e.employee_code} value={e.employee_code}>
                       {e.emp_name}
                     </option>
@@ -381,7 +397,7 @@ export default function RewardsDetailPage() {
                   className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none text-slate-700 font-bold focus:ring-2 focus:ring-indigo-500/20"
                 >
                   <option value="">اختر نوع المكافأة</option>
-                  {types.map((t: any) => (
+                  {types.map((t: RewardType) => (
                     <option key={t.id} value={t.id}>{t.name}</option>
                   ))}
                 </select>

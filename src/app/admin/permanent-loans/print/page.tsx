@@ -4,13 +4,27 @@ import { useEffect, useState } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import LoadingScreen from '@/components/ui/LoadingScreen';
 
-const API = 'http://localhost:8000/api/admin';
+const API = process.env.NEXT_PUBLIC_API_URL || '';
+
+interface PermanentLoanPrintItem {
+  id: number;
+  employee_code: string;
+  total: string | number;
+  installment_value: string | number;
+  paid_amount?: string | number;
+  remaining_amount?: string | number;
+  is_dismissed?: number;
+  is_archived?: number;
+  employee?: {
+    emp_name: string;
+  };
+}
 
 export default function PermanentLoansPrintPage() {
   const { t } = useLanguage();
   const [loading, setLoading] = useState(true);
-  const [data, setData] = useState<any[]>([]);
-  const [settings, setSettings] = useState<any>(null);
+  const [data, setData] = useState<PermanentLoanPrintItem[]>([]);
+  const [settings, setSettings] = useState<{ company_name?: string; address?: string; image?: string } | null>(null);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -21,7 +35,6 @@ export default function PermanentLoansPrintPage() {
         const res = await fetch(`${API}/permanent-loans`, { headers });
         const result = await res.json();
         
-        
         const setRes = await fetch(`${API}/generalSettings`, { headers });
         const setResult = await setRes.json();
         if (setResult.status) {
@@ -30,14 +43,17 @@ export default function PermanentLoansPrintPage() {
         if (result.status) {
           setData(result.data || []);
         }
-      } catch (error) {
-        console.error('Error fetching data:', error);
+      } catch {
+        // Ignored
       } finally {
         setLoading(false);
       }
     };
 
-    fetchData();
+    const timer = setTimeout(() => {
+      fetchData();
+    }, 0);
+    return () => clearTimeout(timer);
   }, []);
 
   useEffect(() => {
@@ -64,7 +80,7 @@ export default function PermanentLoansPrintPage() {
         {/* Center Section: Company Logo */}
         <div className="text-center w-1/3 flex justify-center">
           {settings?.image ? (
-            <img src={`http://localhost:8000/assets/admin/uploads/${settings.image}`} alt="Company Logo" className="max-h-24 object-contain" />
+            <img src={`${process.env.NEXT_PUBLIC_UPLOAD_URL || ''}/${settings.image}`} alt="Company Logo" className="max-h-24 object-contain" />
           ) : (
             <div className="w-20 h-20 bg-slate-100 rounded-2xl flex items-center justify-center border-2 border-slate-800">
               <svg className="w-10 h-10 text-slate-800" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg>
@@ -102,10 +118,10 @@ export default function PermanentLoansPrintPage() {
                 <span className="text-gray-500 ml-1">({item.employee_code})</span>
                 {item.employee?.emp_name || ''}
               </td>
-                <td className="border border-black p-2">{parseFloat(item.total).toFixed(2)} {t('currency')}</td>
-                <td className="border border-black p-2">{parseFloat(item.installment_value).toFixed(2)} {t('currency')}</td>
-                <td className="border border-black p-2">{parseFloat(item.paid_amount || 0).toFixed(2)} {t('currency')}</td>
-                <td className="border border-black p-2">{parseFloat(item.remaining_amount || item.total).toFixed(2)} {t('currency')}</td>
+                <td className="border border-black p-2">{parseFloat(String(item.total)).toFixed(2)} {t('currency')}</td>
+                <td className="border border-black p-2">{parseFloat(String(item.installment_value)).toFixed(2)} {t('currency')}</td>
+                <td className="border border-black p-2">{parseFloat(String(item.paid_amount || 0)).toFixed(2)} {t('currency')}</td>
+                <td className="border border-black p-2">{parseFloat(String(item.remaining_amount || item.total)).toFixed(2)} {t('currency')}</td>
                 <td className="border border-black p-2">{isDismissed ? 'منتهية' : 'مستمرة'}</td>
               </tr>
             );

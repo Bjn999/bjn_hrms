@@ -19,7 +19,7 @@ export default function LoginPage() {
     setError('');
 
     try {
-      const res = await fetch('http://localhost:8000/api/admin/login', {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || ''}/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -37,7 +37,7 @@ export default function LoginPage() {
       } else {
         setError(data.message || 'بيانات الدخول غير صحيحة');
       }
-    } catch (err) {
+    } catch {
       setError(t('conn_error'));
     } finally {
       setLoading(false);

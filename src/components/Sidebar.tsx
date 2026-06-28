@@ -2,57 +2,74 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
 
 export default function Sidebar() {
   const pathname = usePathname();
   const { t } = useLanguage();
   
-  // State for opening/closing submenus
-  const [openMenus, setOpenMenus] = useState<string[]>([]);
+  // State for manual opening/closing overrides
+  const [manualMenus, setManualMenus] = useState<Record<string, boolean>>({});
+  const [prevPathname, setPrevPathname] = useState(pathname);
 
-  // Auto-expand menu based on current path
-  useEffect(() => {
-    if (pathname?.includes('/admin/employees') || 
-        pathname?.includes('/admin/reward-sal-types') || 
-        pathname?.includes('/admin/discount-sal-types') || 
-        pathname?.includes('/admin/allowance-sal-types')) {
-      setOpenMenus(['employees']);
-    } else if (pathname?.includes('/admin/sanctions') ||
-               pathname?.includes('/admin/absences') ||
-               pathname?.includes('/admin/discounts') ||
-               pathname?.includes('/admin/loans') ||
-               pathname?.includes('/admin/permanent-loans') ||
-               pathname?.includes('/admin/additions') ||
-               pathname?.includes('/admin/rewards') ||
-               pathname?.includes('/admin/allowances') ||
-               pathname?.includes('/admin/salary-records') ||
-               pathname?.includes('/admin/employee-salaries')) {
-      setOpenMenus(['salaries']);
-    } else if (pathname?.includes('/admin/general-settings') || 
-               pathname?.includes('/admin/finance-calendars') || 
-               pathname?.includes('/admin/branches') || 
-               pathname?.includes('/admin/shifts') || 
-               pathname?.includes('/admin/departments') || 
-               pathname?.includes('/admin/jobs-categories') || 
-               pathname?.includes('/admin/qualifications') || 
-               pathname?.includes('/admin/occasions') || 
-               pathname?.includes('/admin/resignations') || 
-               pathname?.includes('/admin/nationalities') || 
-               pathname?.includes('/admin/religions') || 
-               pathname?.includes('/admin/blood-groups') || 
-               pathname?.includes('/admin/countries') || 
-               pathname?.includes('/admin/governorates') || 
-               pathname?.includes('/admin/centers')) {
-      setOpenMenus(['settings']);
+  // Reset manual overrides when path changes, so default path auto-expand takes over
+  if (pathname !== prevPathname) {
+    setPrevPathname(pathname);
+    setManualMenus({});
+  }
+
+  const matchesSection = (section: string) => {
+    if (section === 'employees') {
+      return !!(pathname?.includes('/admin/employees') || 
+                pathname?.includes('/admin/reward-sal-types') || 
+                pathname?.includes('/admin/discount-sal-types') || 
+                pathname?.includes('/admin/allowance-sal-types'));
     }
-  }, [pathname]);
+    if (section === 'salaries') {
+      return !!(pathname?.includes('/admin/sanctions') ||
+                pathname?.includes('/admin/absences') ||
+                pathname?.includes('/admin/discounts') ||
+                pathname?.includes('/admin/loans') ||
+                pathname?.includes('/admin/permanent-loans') ||
+                pathname?.includes('/admin/additions') ||
+                pathname?.includes('/admin/rewards') ||
+                pathname?.includes('/admin/allowances') ||
+                pathname?.includes('/admin/salary-records') ||
+                pathname?.includes('/admin/employee-salaries'));
+    }
+    if (section === 'settings') {
+      return !!(pathname?.includes('/admin/general-settings') || 
+                pathname?.includes('/admin/finance-calendars') || 
+                pathname?.includes('/admin/branches') || 
+                pathname?.includes('/admin/shifts') || 
+                pathname?.includes('/admin/departments') || 
+                pathname?.includes('/admin/jobs-categories') || 
+                pathname?.includes('/admin/qualifications') || 
+                pathname?.includes('/admin/occasions') || 
+                pathname?.includes('/admin/resignations') || 
+                pathname?.includes('/admin/nationalities') || 
+                pathname?.includes('/admin/religions') || 
+                pathname?.includes('/admin/blood-groups') || 
+                pathname?.includes('/admin/countries') || 
+                pathname?.includes('/admin/governorates') || 
+                pathname?.includes('/admin/centers'));
+    }
+    return false;
+  };
+
+  const isMenuOpen = (menu: string) => {
+    if (manualMenus[menu] !== undefined) {
+      return manualMenus[menu];
+    }
+    return matchesSection(menu);
+  };
 
   const toggleMenu = (menu: string) => {
-    setOpenMenus(prev => 
-      prev.includes(menu) ? [] : [menu]
-    );
+    setManualMenus(prev => ({
+      ...prev,
+      [menu]: !isMenuOpen(menu)
+    }));
   };
 
   const isActive = (path: string) => pathname === path || pathname?.startsWith(path + '/');
@@ -86,18 +103,18 @@ export default function Sidebar() {
           <p className="px-4 text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">{t('admin_settings')}</p>
           <button 
             onClick={() => toggleMenu('settings')}
-            className={`group w-full flex items-center justify-between px-4 py-3.5 rounded-2xl transition-all duration-300 ${openMenus.includes('settings') ? 'bg-slate-800/50 text-white' : 'hover:bg-slate-800/30 hover:text-white'}`}
+            className={`group w-full flex items-center justify-between px-4 py-3.5 rounded-2xl transition-all duration-300 ${isMenuOpen('settings') ? 'bg-slate-800/50 text-white' : 'hover:bg-slate-800/30 hover:text-white'}`}
           >
             <div className="flex items-center">
-              <svg className={`w-5 h-5 ml-3 transition-colors ${openMenus.includes('settings') ? 'text-indigo-400' : 'text-slate-400 group-hover:text-white'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+              <svg className={`w-5 h-5 ml-3 transition-colors ${isMenuOpen('settings') ? 'text-indigo-400' : 'text-slate-400 group-hover:text-white'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
               <span className="font-medium mx-2">{t('settings_list')}</span>
             </div>
-            <div className={`w-6 h-6 rounded-full bg-slate-800 flex items-center justify-center transition-transform duration-300 ${openMenus.includes('settings') ? 'transform -rotate-90 bg-indigo-500/20 text-indigo-400' : ''}`}>
+            <div className={`w-6 h-6 rounded-full bg-slate-800 flex items-center justify-center transition-transform duration-300 ${isMenuOpen('settings') ? 'transform -rotate-90 bg-indigo-500/20 text-indigo-400' : ''}`}>
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
             </div>
           </button>
           
-          <div className={`overflow-hidden transition-all duration-500 ${openMenus.includes('settings') ? 'max-h-[1200px] opacity-100 mt-2' : 'max-h-0 opacity-0'}`}>
+          <div className={`overflow-hidden transition-all duration-500 ${isMenuOpen('settings') ? 'max-h-[1200px] opacity-100 mt-2' : 'max-h-0 opacity-0'}`}>
             <div className="space-y-1 mx-4 ltr:border-l-2 ltr:pl-4 rtl:border-r-2 rtl:pr-4 border-slate-800/50 py-1">
               <Link href="/admin/general-settings" className={`flex items-center px-4 py-2.5 text-sm rounded-xl transition-all duration-300 ${isActive('/admin/general-settings') ? 'text-white bg-indigo-500/10 font-bold' : 'text-slate-400 hover:text-white hover:bg-slate-800/50 hover:translate-x-1'}`}>
                 <div className={`w-1.5 h-1.5 rounded-full mx-2 transition-colors ${isActive('/admin/general-settings') ? 'bg-indigo-500 shadow-[0_0_8px_rgba(99,102,241,0.8)]' : 'bg-slate-600'}`}></div>
@@ -167,18 +184,18 @@ export default function Sidebar() {
         <div className="pt-2">
           <button 
             onClick={() => toggleMenu('employees')}
-            className={`group w-full flex items-center justify-between px-4 py-3.5 rounded-2xl transition-all duration-300 ${openMenus.includes('employees') ? 'bg-slate-800/50 text-white' : 'hover:bg-slate-800/30 hover:text-white'}`}
+            className={`group w-full flex items-center justify-between px-4 py-3.5 rounded-2xl transition-all duration-300 ${isMenuOpen('employees') ? 'bg-slate-800/50 text-white' : 'hover:bg-slate-800/30 hover:text-white'}`}
           >
             <div className="flex items-center">
-              <svg className={`w-5 h-5 ml-3 transition-colors ${openMenus.includes('employees') ? 'text-purple-400' : 'text-slate-400 group-hover:text-white'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
+              <svg className={`w-5 h-5 ml-3 transition-colors ${isMenuOpen('employees') ? 'text-purple-400' : 'text-slate-400 group-hover:text-white'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
               <span className="font-medium mx-2">{t('employees_menu')}</span>
             </div>
-            <div className={`w-6 h-6 rounded-full bg-slate-800 flex items-center justify-center transition-transform duration-300 ${openMenus.includes('employees') ? 'transform -rotate-90 bg-purple-500/20 text-purple-400' : ''}`}>
+            <div className={`w-6 h-6 rounded-full bg-slate-800 flex items-center justify-center transition-transform duration-300 ${isMenuOpen('employees') ? 'transform -rotate-90 bg-purple-500/20 text-purple-400' : ''}`}>
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
             </div>
           </button>
           
-          <div className={`overflow-hidden transition-all duration-500 ${openMenus.includes('employees') ? 'max-h-[800px] opacity-100 mt-2' : 'max-h-0 opacity-0'}`}>
+          <div className={`overflow-hidden transition-all duration-500 ${isMenuOpen('employees') ? 'max-h-[800px] opacity-100 mt-2' : 'max-h-0 opacity-0'}`}>
             <div className="space-y-1 mx-4 ltr:border-l-2 ltr:pl-4 rtl:border-r-2 rtl:pr-4 border-slate-800/50 py-1">
               <Link href="/admin/employees" className={`flex items-center px-4 py-2.5 text-sm rounded-xl transition-all duration-300 ${isActive('/admin/employees') ? 'text-white bg-purple-500/10 font-bold' : 'text-slate-400 hover:text-white hover:bg-slate-800/50 hover:translate-x-1'}`}>
                 <div className={`w-1.5 h-1.5 rounded-full mx-2 transition-colors ${isActive('/admin/employees') ? 'bg-purple-500 shadow-[0_0_8px_rgba(168,85,247,0.8)]' : 'bg-slate-600'}`}></div>
@@ -204,18 +221,18 @@ export default function Sidebar() {
         <div className="pt-2">
           <button 
             onClick={() => toggleMenu('salaries')}
-            className={`group w-full flex items-center justify-between px-4 py-3.5 rounded-2xl transition-all duration-300 ${openMenus.includes('salaries') ? 'bg-slate-800/50 text-white' : 'hover:bg-slate-800/30 hover:text-white'}`}
+            className={`group w-full flex items-center justify-between px-4 py-3.5 rounded-2xl transition-all duration-300 ${isMenuOpen('salaries') ? 'bg-slate-800/50 text-white' : 'hover:bg-slate-800/30 hover:text-white'}`}
           >
             <div className="flex items-center">
-              <svg className={`w-5 h-5 ml-3 transition-colors ${openMenus.includes('salaries') ? 'text-emerald-400' : 'text-slate-400 group-hover:text-white'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+              <svg className={`w-5 h-5 ml-3 transition-colors ${isMenuOpen('salaries') ? 'text-emerald-400' : 'text-slate-400 group-hover:text-white'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
               <span className="font-medium mx-2">{t('salaries_menu')}</span>
             </div>
-            <div className={`w-6 h-6 rounded-full bg-slate-800 flex items-center justify-center transition-transform duration-300 ${openMenus.includes('salaries') ? 'transform -rotate-90 bg-emerald-500/20 text-emerald-400' : ''}`}>
+            <div className={`w-6 h-6 rounded-full bg-slate-800 flex items-center justify-center transition-transform duration-300 ${isMenuOpen('salaries') ? 'transform -rotate-90 bg-emerald-500/20 text-emerald-400' : ''}`}>
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
             </div>
           </button>
           
-          <div className={`overflow-hidden transition-all duration-500 ${openMenus.includes('salaries') ? 'max-h-[800px] opacity-100 mt-2' : 'max-h-0 opacity-0'}`}>
+          <div className={`overflow-hidden transition-all duration-500 ${isMenuOpen('salaries') ? 'max-h-[800px] opacity-100 mt-2' : 'max-h-0 opacity-0'}`}>
             <div className="space-y-1 mx-4 ltr:border-l-2 ltr:pl-4 rtl:border-r-2 rtl:pr-4 border-slate-800/50 py-1">
               <Link href="/admin/salary-records" className={`flex items-center px-4 py-2.5 text-sm rounded-xl transition-all duration-300 ${isActive('/admin/salary-records') ? 'text-white bg-emerald-500/10 font-bold' : 'text-slate-400 hover:text-white hover:bg-slate-800/50 hover:translate-x-1'}`}>
                 <div className={`w-1.5 h-1.5 rounded-full mx-2 transition-colors ${isActive('/admin/salary-records') ? 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.8)]' : 'bg-slate-600'}`}></div>

@@ -8,8 +8,15 @@ import LoadingScreen from '@/components/ui/LoadingScreen';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useToast } from '@/contexts/ToastContext';
 import { useConfirm } from '@/contexts/ConfirmContext';
+import { FinanceMonth, Loan, Employee } from '@/types';
 
-const API = 'http://localhost:8000/api/admin';
+interface LoanEmployee {
+  employee_code?: string;
+  emp_name?: string;
+  employee?: Employee;
+}
+
+const API = process.env.NEXT_PUBLIC_API_URL || '';
 
 const emptyForm = {
   finance_month_period_id: '',
@@ -28,9 +35,9 @@ export default function LoansDetailPage() {
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [financeMonth, setFinanceMonth] = useState<any>(null);
-  const [loans, setLoans] = useState<any[]>([]);
-  const [employees, setEmployees] = useState<any[]>([]);
+  const [financeMonth, setFinanceMonth] = useState<FinanceMonth | null>(null);
+  const [loans, setLoans] = useState<Loan[]>([]);
+  const [employees, setEmployees] = useState<LoanEmployee[]>([]);
   const [isMonthOpen, setIsMonthOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -66,7 +73,13 @@ export default function LoansDetailPage() {
     }
   };
 
-  useEffect(() => { fetchData(); }, []);
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      fetchData();
+    }, 0);
+    return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const openAddModal = () => {
     setEditingId(null);
@@ -74,14 +87,14 @@ export default function LoansDetailPage() {
     setShowModal(true);
   };
 
-  const openEditModal = (a: any) => {
+  const openEditModal = (a: Loan) => {
     if (a.is_archived == 1) { showToast(t('cannot_edit_archived'), 'error'); return; }
     if (!isMonthOpen) { showToast(t('cannot_edit_closed'), 'error'); return; }
     setEditingId(a.id);
     setForm({
       finance_month_period_id: monthId,
       employee_code: a.employee_code,
-      total: a.total,
+      total: String(a.total),
       notes: a.notes || '',
     });
     setShowModal(true);
@@ -94,7 +107,7 @@ export default function LoansDetailPage() {
     }
 
     if (!editingId) {
-      const exists = loans.some((a: any) => String(a.employee_code) === String(form.employee_code));
+      const exists = loans.some((a: Loan) => String(a.employee_code) === String(form.employee_code));
       if (exists) {
         const ok = await confirm({ title: 'تنبيه', description: 'هذا الموظف لديه سلفة بالفعل في هذا الشهر. هل تريد الإضافة على أي حال؟', icon: 'warning' });
         if (!ok) return;
@@ -121,7 +134,7 @@ export default function LoansDetailPage() {
     }
   };
 
-  const handleDelete = async (a: any) => {
+  const handleDelete = async (a: Loan) => {
     if (a.is_archived == 1) { showToast(t('cannot_delete_archived'), 'error'); return; }
     if (!isMonthOpen) { showToast(t('cannot_delete_closed'), 'error'); return; }
     const ok = await confirm({ title: t('confirm_delete'), description: 'هل أنت متأكد من حذف السلفة الشهرية؟', icon: 'danger' });
@@ -136,7 +149,7 @@ export default function LoansDetailPage() {
     }
   };
 
-  const filteredLoans = loans.filter((a: any) => {
+  const filteredLoans = loans.filter((a: Loan) => {
     if (!searchQuery) return true;
     const query = searchQuery.toLowerCase();
     const empName = a.employee?.emp_name?.toLowerCase() || '';
@@ -146,7 +159,7 @@ export default function LoansDetailPage() {
     return empName.includes(query) || empCode.includes(query) || notes.includes(query) || total.includes(query);
   });
 
-  const totalAmount = filteredLoans.reduce((s: number, a: any) => s + parseFloat(a.total || 0), 0);
+  const totalAmount = filteredLoans.reduce((s: number, a: Loan) => s + parseFloat((a.total || 0).toString()), 0);
 
   if (loading) return <LoadingScreen />;
 
@@ -251,7 +264,7 @@ export default function LoansDetailPage() {
               </tr>
             </thead>
             <tbody>
-              {filteredLoans.map((a: any) => {
+              {filteredLoans.map((a: Loan) => {
                 const isArchived = a.is_archived == 1;
                 const canAct = isMonthOpen && !isArchived;
                 return (
@@ -273,14 +286,14 @@ export default function LoansDetailPage() {
                         </div>
                       )}
                     </td>
-                    <td className="px-5 py-4 font-bold text-sky-600">{parseFloat(a.total).toFixed(2)}</td>
+                    <td className="px-5 py-4 font-bold text-sky-600">{parseFloat(String(a.total)).toFixed(2)}</td>
                     <td className="px-5 py-4 text-xs font-bold text-slate-500">
                       <div>{new Date(a.created_at).toLocaleDateString('ar-SA')}</div>
                       <div>{new Date(a.created_at).toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' })}</div>
                       <div className="text-emerald-600 mt-1">{a.added?.name}</div>
                     </td>
                     <td className="px-5 py-4 text-xs font-bold text-slate-500">
-                      {a.updated_by > 0 && a.updated_at ? (
+                      {a.updated_by && a.updated_by > 0 && a.updated_at ? (
                         <>
                           <div>{new Date(a.updated_at).toLocaleDateString('ar-SA')}</div>
                           <div>{new Date(a.updated_at).toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' })}</div>
@@ -349,7 +362,7 @@ export default function LoansDetailPage() {
                   className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none text-slate-700 font-bold focus:ring-2 focus:ring-sky-500/20"
                 >
                   <option value="">{t('select_employee')}</option>
-                  {employees.map((e: any) => (
+                  {employees.map((e: LoanEmployee) => (
                     <option key={e.employee_code || e.employee?.employee_code} value={e.employee_code || e.employee?.employee_code}>
                       {e.employee?.emp_name || e.emp_name}
                     </option>

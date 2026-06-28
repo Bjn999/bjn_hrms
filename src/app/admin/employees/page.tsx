@@ -6,24 +6,28 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { useToast } from '@/contexts/ToastContext';
 import { useConfirm } from '@/contexts/ConfirmContext';
 import LoadingScreen from '@/components/ui/LoadingScreen';
+import { Employee, Branch, Department, JobCategory } from '@/types';
+
+interface EmployeeListItem extends Omit<Employee, 'job'> {
+  branch?: Branch;
+  department?: Department;
+  job?: JobCategory;
+  counterUsed?: number;
+}
 
 export default function EmployeesPage() {
-  const { t, language } = useLanguage();
+  const { t } = useLanguage();
   const { showToast } = useToast();
   const { confirm } = useConfirm();
   
-  const [data, setData] = useState([]);
+  const [data, setData] = useState<EmployeeListItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
-
-  useEffect(() => {
-    fetchData();
-  }, []);
 
   const fetchData = async () => {
     try {
       const token = localStorage.getItem('admin_token');
-      const res = await fetch(`http://localhost:8000/api/admin/employees`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || ''}/employees`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Accept': 'application/json'
@@ -31,14 +35,22 @@ export default function EmployeesPage() {
       });
       const result = await res.json();
       if (result.status) {
-        setData(result.data);
+        setData(result.data || []);
       }
-    } catch (e) {
+    } catch {
       showToast(t('fetch_failed'), 'error');
     } finally {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      fetchData();
+    }, 0);
+    return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleDelete = async (id: number) => {
     const isConfirmed = await confirm({
@@ -50,7 +62,7 @@ export default function EmployeesPage() {
 
     try {
       const token = localStorage.getItem('admin_token');
-      const res = await fetch(`http://localhost:8000/api/admin/employees/${id}`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || ''}/employees/${id}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -64,14 +76,14 @@ export default function EmployeesPage() {
       } else {
         showToast(result.message, 'error');
       }
-    } catch (e) {
+    } catch {
       showToast(t('conn_error'), 'error');
     }
   };
 
   if (loading && data.length === 0) return <LoadingScreen />;
 
-  const filteredEmployees = data.filter((item: any) => {
+  const filteredEmployees = data.filter((item: EmployeeListItem) => {
     if (!searchQuery) return true;
     const query = searchQuery.toLowerCase();
     const empName = item.emp_name?.toLowerCase() || '';
@@ -131,7 +143,7 @@ export default function EmployeesPage() {
               </tr>
             </thead>
             <tbody>
-              {filteredEmployees.map((item: any) => (
+              {filteredEmployees.map((item: EmployeeListItem) => (
                 <tr key={item.id} className="border-b border-slate-50 hover:bg-slate-50/50 transition-colors">
                   <td className="px-6 py-4 font-bold text-indigo-600">#{item.employee_code}</td>
                   <td className="px-6 py-4 font-bold text-slate-900">{item.emp_name}</td>
@@ -150,8 +162,8 @@ export default function EmployeesPage() {
                     <Link href={`/admin/employees/edit/${item.id}`} className="p-2 text-amber-500 hover:bg-amber-50 rounded-lg transition-colors">
                       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
                     </Link>
-                    {!(item.counterUsed > 0) && (
-                      <button onClick={() => handleDelete(item.id)} className="p-2 text-rose-500 hover:bg-rose-50 rounded-lg transition-colors">
+                    {!(item.counterUsed && item.counterUsed > 0) && (
+                      <button onClick={() => handleDelete(item.id!)} className="p-2 text-rose-500 hover:bg-rose-50 rounded-lg transition-colors">
                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
                       </button>
                     )}

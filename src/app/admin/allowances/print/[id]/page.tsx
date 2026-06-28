@@ -4,8 +4,19 @@ import { useEffect, useState } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useParams } from 'next/navigation';
 import LoadingScreen from '@/components/ui/LoadingScreen';
+import { FinanceMonth, Allowance } from '@/types';
 
-const API = 'http://localhost:8000/api/admin';
+interface AllowanceItem extends Allowance {
+  allowance_name?: string;
+}
+
+interface GeneralSettings {
+  company_name?: string;
+  address?: string;
+  image?: string;
+}
+
+const API = process.env.NEXT_PUBLIC_API_URL || '';
 
 export default function AllowancesPrintPage() {
   const { t } = useLanguage();
@@ -13,9 +24,9 @@ export default function AllowancesPrintPage() {
   const monthId = params?.id as string;
 
   const [loading, setLoading] = useState(true);
-  const [financeMonth, setFinanceMonth] = useState<any>(null);
-  const [data, setData] = useState<any[]>([]);
-  const [settings, setSettings] = useState<any>(null);
+  const [financeMonth, setFinanceMonth] = useState<FinanceMonth | null>(null);
+  const [data, setData] = useState<AllowanceItem[]>([]);
+  const [settings, setSettings] = useState<GeneralSettings | null>(null);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -26,7 +37,6 @@ export default function AllowancesPrintPage() {
         const res = await fetch(`${API}/employee-allowances/${monthId}`, { headers });
         const result = await res.json();
         
-        
         const setRes = await fetch(`${API}/generalSettings`, { headers });
         const setResult = await setRes.json();
         if (setResult.status) {
@@ -36,14 +46,17 @@ export default function AllowancesPrintPage() {
           setData(result.data || []);
           setFinanceMonth(result.finance_month);
         }
-      } catch (error) {
-        console.error('Error fetching data:', error);
+      } catch {
+        // Ignored
       } finally {
         setLoading(false);
       }
     };
 
-    fetchData();
+    const timer = setTimeout(() => {
+      fetchData();
+    }, 0);
+    return () => clearTimeout(timer);
   }, [monthId]);
 
   useEffect(() => {
@@ -70,7 +83,7 @@ export default function AllowancesPrintPage() {
         {/* Center Section: Company Logo */}
         <div className="text-center w-1/3 flex justify-center">
           {settings?.image ? (
-            <img src={`http://localhost:8000/assets/admin/uploads/${settings.image}`} alt="Company Logo" className="max-h-24 object-contain" />
+            <img src={`${process.env.NEXT_PUBLIC_UPLOAD_URL || ''}/${settings.image}`} alt="Company Logo" className="max-h-24 object-contain" />
           ) : (
             <div className="w-20 h-20 bg-slate-100 rounded-2xl flex items-center justify-center border-2 border-slate-800">
               <svg className="w-10 h-10 text-slate-800" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg>
@@ -110,7 +123,7 @@ export default function AllowancesPrintPage() {
                 {item.employee?.emp_name || ''}
               </td>
               <td className="border border-black p-2">{item.allowance_name}</td>
-              <td className="border border-black p-2">{parseFloat(item.total).toFixed(2)} {t('currency')}</td>
+              <td className="border border-black p-2">{item.total.toFixed(2)} {t('currency')}</td>
               <td className="border border-black p-2 max-w-[200px] break-words whitespace-pre-wrap">{item.notes || '-'}</td>
             </tr>
           ))}

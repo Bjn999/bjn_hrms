@@ -7,8 +7,23 @@ import Link from 'next/link';
 import LoadingScreen from '@/components/ui/LoadingScreen';
 import { useToast } from '@/contexts/ToastContext';
 import { useConfirm } from '@/contexts/ConfirmContext';
+import { FinanceMonth, Employee } from '@/types';
 
-const API = 'http://localhost:8000/api/admin';
+interface EmployeeSalaryItem {
+  id: number;
+  finance_month_id: number;
+  employee_code: string;
+  is_stoped: number;
+  is_archived: number;
+  total_benefits: string;
+  total_deduction: string;
+  final_the_net: string;
+  emp_name_display?: string;
+  emp_sal?: string | number;
+  employee?: Employee;
+}
+
+const API = process.env.NEXT_PUBLIC_API_URL || '';
 
 const MONTHS_AR: Record<number, string> = {
   1: 'يناير', 2: 'فبراير', 3: 'مارس', 4: 'أبريل',
@@ -25,9 +40,9 @@ export default function SalaryRecordsDetailPage() {
   const monthId = params?.id as string;
 
   const [loading, setLoading] = useState(true);
-  const [financeMonth, setFinanceMonth] = useState<any>(null);
-  const [data, setData] = useState<any[]>([]);
-  const [availableEmployees, setAvailableEmployees] = useState<any[]>([]);
+  const [financeMonth, setFinanceMonth] = useState<FinanceMonth | null>(null);
+  const [data, setData] = useState<EmployeeSalaryItem[]>([]);
+  const [availableEmployees, setAvailableEmployees] = useState<Employee[]>([]);
   const [nothavesal, setNothavesal] = useState(0);
   const [isMonthOpen, setIsMonthOpen] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -66,7 +81,13 @@ export default function SalaryRecordsDetailPage() {
     }
   };
 
-  useEffect(() => { fetchData(); }, []);
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      fetchData();
+    }, 0);
+    return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleAddSalary = async () => {
     if (!selectedEmployee) { showToast('يرجى اختيار الموظف', 'error'); return; }
@@ -134,7 +155,7 @@ export default function SalaryRecordsDetailPage() {
     }
   };
 
-  const filteredData = data.filter((item: any) => {
+  const filteredData = data.filter((item: EmployeeSalaryItem) => {
     if (!searchQuery) return true;
     const query = searchQuery.toLowerCase();
     const empName = item.employee?.emp_name?.toLowerCase() || '';
@@ -148,9 +169,9 @@ export default function SalaryRecordsDetailPage() {
     return empName.includes(query) || empCode.includes(query) || isArchived.includes(query) || isStoped.includes(query) || finalNet.includes(query) || totalBenefits.includes(query) || totalDeduction.includes(query);
   });
 
-  const totalBenefits = filteredData.reduce((s: number, r: any) => s + parseFloat(r.total_benefits || 0), 0);
-  const totalDeduction = filteredData.reduce((s: number, r: any) => s + parseFloat(r.total_deduction || 0), 0);
-  const totalNet = filteredData.reduce((s: number, r: any) => s + parseFloat(r.final_the_net || 0), 0);
+  const totalBenefits = filteredData.reduce((s: number, r: EmployeeSalaryItem) => s + parseFloat(r.total_benefits || '0'), 0);
+  const totalDeduction = filteredData.reduce((s: number, r: EmployeeSalaryItem) => s + parseFloat(r.total_deduction || '0'), 0);
+  const totalNet = filteredData.reduce((s: number, r: EmployeeSalaryItem) => s + parseFloat(r.final_the_net || '0'), 0);
 
   if (loading) return <LoadingScreen />;
 
@@ -171,7 +192,7 @@ export default function SalaryRecordsDetailPage() {
                 السنة المالية: {financeMonth.finance_yr}
               </span>
               <span className="px-3 py-1 bg-slate-100 text-slate-700 rounded-lg text-sm font-bold">
-                {MONTHS_AR[financeMonth.month_id]} — {financeMonth.start_date_m} إلى {financeMonth.end_date_m}
+                {(financeMonth.month_id !== undefined ? MONTHS_AR[financeMonth.month_id] : '')} — {financeMonth.start_date_m} إلى {financeMonth.end_date_m}
               </span>
               <span className={`px-3 py-1 rounded-lg text-xs font-bold ${isMonthOpen ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-600'}`}>
                 {isMonthOpen ? 'مفتوح' : 'مغلق'}
@@ -242,7 +263,7 @@ export default function SalaryRecordsDetailPage() {
               </tr>
             </thead>
             <tbody>
-              {filteredData.map((row: any) => {
+              {filteredData.map((row: EmployeeSalaryItem) => {
                 const isArchived = row.is_archived == 1;
                 const isStopped = row.is_stoped == 1;
                 const canAct = isMonthOpen && !isArchived;
@@ -252,10 +273,10 @@ export default function SalaryRecordsDetailPage() {
                       <p className="font-bold text-slate-800">{row.emp_name_display || row.employee_code}</p>
                       <p className="text-xs text-slate-400">{row.employee_code}</p>
                     </td>
-                    <td className="px-4 py-4 font-bold text-slate-700">{parseFloat(row.emp_sal || 0).toFixed(2)}</td>
-                    <td className="px-4 py-4 font-bold text-emerald-600">{parseFloat(row.total_benefits || 0).toFixed(2)}</td>
-                    <td className="px-4 py-4 font-bold text-rose-600">{parseFloat(row.total_deduction || 0).toFixed(2)}</td>
-                    <td className="px-4 py-4 font-black text-blue-700">{parseFloat(row.final_the_net || 0).toFixed(2)}</td>
+                    <td className="px-4 py-4 font-bold text-slate-700">{parseFloat(String(row.emp_sal || 0)).toFixed(2)}</td>
+                    <td className="px-4 py-4 font-bold text-emerald-600">{parseFloat(row.total_benefits || '0').toFixed(2)}</td>
+                    <td className="px-4 py-4 font-bold text-rose-600">{parseFloat(row.total_deduction || '0').toFixed(2)}</td>
+                    <td className="px-4 py-4 font-black text-blue-700">{parseFloat(row.final_the_net || '0').toFixed(2)}</td>
                     <td className="px-4 py-4">
                       <div className="flex flex-col gap-1">
                         {isArchived ? (
@@ -336,9 +357,9 @@ export default function SalaryRecordsDetailPage() {
                 className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl outline-none text-slate-700 font-bold focus:ring-2 focus:ring-violet-500/20"
               >
                 <option value="">-- اختر موظفاً --</option>
-                {availableEmployees.map((e: any) => (
+                {availableEmployees.map((e: Employee) => (
                   <option key={e.employee_code} value={e.employee_code}>
-                    {e.emp_name} ({e.employee_code}) — راتب: {parseFloat(e.emp_sal || 0).toFixed(2)}
+                    {e.emp_name} ({e.employee_code}) — راتب: {parseFloat(e.emp_sal?.toString() || '0').toFixed(2)}
                   </option>
                 ))}
               </select>

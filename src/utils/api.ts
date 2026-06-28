@@ -1,5 +1,5 @@
 
-export const API_URL = 'http://localhost:8000/api/admin';
+export const API_URL = process.env.NEXT_PUBLIC_API_URL || '';
 
 export async function apiFetch(endpoint: string, options: RequestInit = {}) {
   const token = localStorage.getItem('admin_token');
