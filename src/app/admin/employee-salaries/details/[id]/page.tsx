@@ -34,6 +34,8 @@ interface SalaryDetails {
   emp_sal?: string | number;
   emp_job_id?: number;
   emp_departments_id?: number;
+  job_name?: number;
+  department_name?: number;
   day_price?: string | number;
   sal_cash_or_visa?: number;
   last_salary_remain_balance?: string | number;
@@ -75,8 +77,14 @@ const MONTHS_AR: Record<number, string> = {
   9: 'سبتمبر', 10: 'أكتوبر', 11: 'نوفمبر', 12: 'ديسمبر'
 };
 
+const MONTHS_EN: Record<number, string> = {
+  1: 'January', 2: 'February', 3: 'March', 4: 'April',
+  5: 'May', 6: 'June', 7: 'July', 8: 'August',
+  9: 'September', 10: 'October', 11: 'November', 12: 'December'
+};
+
 export default function EmployeeSalaryDetailsPage() {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const { showToast } = useToast();
   const { confirm } = useConfirm();
   const params = useParams();
@@ -104,11 +112,11 @@ export default function EmployeeSalaryDetailsPage() {
         setFinanceMonth(result.finance_month);
         setIsMonthOpen(result.finance_month?.is_open == 1);
       } else {
-        showToast(result.message || 'فشل في تحميل تفاصيل الراتب', 'error');
+        showToast(result.message || t('failed_load_salary'), 'error');
         router.back();
       }
     } catch {
-      showToast('حدث خطأ في الاتصال بالخادم', 'error');
+      showToast(t('conn_error'), 'error');
     } finally {
       setLoading(false);
     }
@@ -126,8 +134,8 @@ export default function EmployeeSalaryDetailsPage() {
 
   const handleStopSalary = async () => {
     const ok = await confirm({
-      title: 'تأكيد إيقاف الراتب',
-      description: 'هل أنت متأكد من إيقاف راتب هذا الموظف للشهر الحالي؟',
+      title: t('confirm_stop_salary_title'),
+      description: t('confirm_stop_salary_desc'),
       icon: 'warning'
     });
     if (!ok) return;
@@ -146,7 +154,7 @@ export default function EmployeeSalaryDetailsPage() {
         showToast(result.message, 'error');
       }
     } catch {
-      showToast('حدث خطأ في الاتصال بالخادم', 'error');
+      showToast(t('conn_error'), 'error');
     } finally {
       setActionLoading(false);
     }
@@ -154,8 +162,8 @@ export default function EmployeeSalaryDetailsPage() {
 
   const handleResumeSalary = async () => {
     const ok = await confirm({
-      title: 'تأكيد تفعيل الراتب',
-      description: 'هل أنت متأكد من إعادة تفعيل راتب هذا الموظف؟',
+      title: t('confirm_resume_salary_title'),
+      description: t('confirm_resume_salary_desc'),
       icon: 'warning'
     });
     if (!ok) return;
@@ -174,7 +182,7 @@ export default function EmployeeSalaryDetailsPage() {
         showToast(result.message, 'error');
       }
     } catch {
-      showToast('حدث خطأ في الاتصال بالخادم', 'error');
+      showToast(t('conn_error'), 'error');
     } finally {
       setActionLoading(false);
     }
@@ -182,8 +190,8 @@ export default function EmployeeSalaryDetailsPage() {
 
   const handleArchiveSalary = async () => {
     const ok = await confirm({
-      title: 'تأكيد أرشفة الراتب',
-      description: 'هل أنت متأكد من أرشفة راتب هذا الموظف؟ سيتم إغلاق كافة الحركات والجزاءات المرتبطة به ولا يمكن التعديل عليها لاحقاً.',
+      title: t('confirm_archive_salary_title'),
+      description: t('confirm_archive_salary_desc'),
       icon: 'warning'
     });
     if (!ok) return;
@@ -202,7 +210,7 @@ export default function EmployeeSalaryDetailsPage() {
         showToast(result.message, 'error');
       }
     } catch {
-      showToast('حدث خطأ في الاتصال بالخادم', 'error');
+      showToast(t('conn_error'), 'error');
     } finally {
       setActionLoading(false);
     }
@@ -210,8 +218,8 @@ export default function EmployeeSalaryDetailsPage() {
 
   const handleDeleteSalary = async () => {
     const ok = await confirm({
-      title: 'تأكيد حذف الراتب',
-      description: 'هل أنت متأكد من حذف سجل راتب الموظف بالكامل لهذا الشهر؟ لا يمكن التراجع عن هذا الإجراء.',
+      title: t('confirm_delete_salary_title'),
+      description: t('confirm_delete_salary_desc'),
       icon: 'danger'
     });
     if (!ok) return;
@@ -232,7 +240,7 @@ export default function EmployeeSalaryDetailsPage() {
         showToast(result.message, 'error');
       }
     } catch {
-      showToast('حدث خطأ في الاتصال بالخادم', 'error');
+      showToast(t('conn_error'), 'error');
     } finally {
       setActionLoading(false);
     }
@@ -347,10 +355,10 @@ export default function EmployeeSalaryDetailsPage() {
             </svg>
           </button>
           <div>
-            <h2 className="text-2xl font-black text-slate-800">تفاصيل راتب الموظف</h2>
+            <h2 className="text-2xl font-black text-slate-800">{t('emp_salary_details')}</h2>
             {financeMonth && (
               <p className="text-sm text-slate-500 font-medium">
-                الشهر المالي: {(financeMonth.month_id !== undefined ? MONTHS_AR[financeMonth.month_id] : '')} لسنة {financeMonth.finance_yr}
+                {t('finance_month')}: {financeMonth.month_id !== undefined ? (language === 'ar' ? MONTHS_AR[financeMonth.month_id] : MONTHS_EN[financeMonth.month_id]) : ''} - {financeMonth.finance_yr}
               </p>
             )}
           </div>
@@ -364,7 +372,7 @@ export default function EmployeeSalaryDetailsPage() {
             <svg className="w-5 h-5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
             </svg>
-            طباعة كشف الراتب
+            {t('print_salary_slip')}
           </button>
         </div>
       </div>
@@ -373,18 +381,18 @@ export default function EmployeeSalaryDetailsPage() {
       {financeMonth && (
         <div className="bg-white rounded-2xl p-4 shadow-sm border border-slate-100 mb-6 flex flex-wrap items-center justify-between gap-4 print:hidden">
           <div className="flex items-center gap-3">
-            <span className="text-sm text-slate-500 font-bold">حالة الراتب الحالية:</span>
+            <span className="text-sm text-slate-500 font-bold">{t('salary_status')}:</span>
             {isArchived ? (
               <span className="px-3 py-1 rounded-lg text-xs font-bold bg-slate-100 text-slate-600 border border-slate-200">
-                مؤرشف ومغلق بالكامل
+                {t('salary_status_archived')}
               </span>
             ) : isStopped ? (
               <span className="px-3 py-1 rounded-lg text-xs font-bold bg-rose-50 text-rose-600 border border-rose-100">
-                موقوف مؤقتاً
+                {t('salary_status_stopped')}
               </span>
             ) : (
               <span className="px-3 py-1 rounded-lg text-xs font-bold bg-emerald-50 text-emerald-600 border border-emerald-100">
-                نشط ومفعّل
+                {t('salary_status_active')}
               </span>
             )}
           </div>
@@ -400,7 +408,7 @@ export default function EmployeeSalaryDetailsPage() {
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
-                  إيقاف مؤقت
+                  {t('temp_stop')}
                 </button>
                 <button
                   onClick={handleArchiveSalary}
@@ -410,7 +418,7 @@ export default function EmployeeSalaryDetailsPage() {
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
                   </svg>
-                  أرشفة الراتب
+                  {t('archive_salary')}
                 </button>
               </>
             )}
@@ -424,7 +432,7 @@ export default function EmployeeSalaryDetailsPage() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
-                تفعيل الراتب
+                {t('activate_salary')}
               </button>
             )}
             {canAct && !isStopped && (
@@ -436,7 +444,7 @@ export default function EmployeeSalaryDetailsPage() {
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                 </svg>
-                حذف السجل
+                {t('delete_record')}
               </button>
             )}
           </div>
@@ -447,10 +455,10 @@ export default function EmployeeSalaryDetailsPage() {
       <div className="bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden print:shadow-none print:border-none">
         {/* Print Header Information */}
         <div className="hidden print:block text-center border-b pb-6 mb-6">
-          <h1 className="text-2xl font-black text-black">كشف راتب موظف تفصيلي</h1>
+          <h1 className="text-2xl font-black text-black">{t('detailed_emp_salary_slip')}</h1>
           {financeMonth && (
             <p className="text-sm text-slate-700 font-bold mt-1">
-              عن الشهر المالي: {(financeMonth.month_id !== undefined ? MONTHS_AR[financeMonth.month_id] : '')} لسنة {financeMonth.finance_yr} ({financeMonth.start_date_m} إلى {financeMonth.end_date_m})
+              {t('finance_month')}: {financeMonth.month_id !== undefined ? (language === 'ar' ? MONTHS_AR[financeMonth.month_id] : MONTHS_EN[financeMonth.month_id]) : ''} - {financeMonth.finance_yr} ({financeMonth.start_date_m} {t('from_date_to_date')} {financeMonth.end_date_m})
             </p>
           )}
         </div>
@@ -458,28 +466,30 @@ export default function EmployeeSalaryDetailsPage() {
         {/* Employee Info Header */}
         <div className="p-6 bg-gradient-to-r from-slate-50 to-slate-100 border-b border-slate-100 grid grid-cols-1 md:grid-cols-3 gap-6 print:bg-white print:border-b-2 print:border-black">
           <div>
-            <span className="block text-xs font-bold text-slate-400 uppercase print:text-slate-700">الموظف</span>
+            <span className="block text-xs font-bold text-slate-400 uppercase print:text-slate-700">{t('employee')}</span>
             <p className="text-lg font-black text-slate-800 print:text-black mt-1">
               {data.emp_name_display || data.employee?.emp_name || ''}
             </p>
-            <span className="text-sm text-slate-400 font-bold print:text-slate-700">كود الموظف: {data.employee_code}</span>
+            <span className="text-sm text-slate-400 font-bold print:text-slate-700">{t('employee_code')}: {data.employee_code}</span>
           </div>
 
           <div>
             <span className="block text-xs font-bold text-slate-400 uppercase print:text-slate-700">{t('job')}</span>
             <p className="text-lg font-bold text-slate-700 print:text-black mt-1">
-              {data.emp_job_id ? `مسمى وظيفي رقم ${data.emp_job_id}` : 'غير محدد'}
+              {data.job_name || (data.emp_job_id ? `${t('job')} #${data.emp_job_id}` : t('not_specified'))}
             </p>
-            <span className="text-sm text-slate-400 font-bold print:text-slate-700">القسم: {data.emp_departments_id ? `قسم رقم ${data.emp_departments_id}` : 'عام'}</span>
+            <span className="text-sm text-slate-400 font-bold print:text-slate-700">
+              {t('department')}: {data.department_name || (data.emp_departments_id ? `${t('department')} #${data.emp_departments_id}` : t('general'))}
+            </span>
           </div>
 
           <div>
-            <span className="block text-xs font-bold text-slate-400 uppercase print:text-slate-700">سعر اليوم / نوع الصرف</span>
+            <span className="block text-xs font-bold text-slate-400 uppercase print:text-slate-700">{t('day_price_payment_method')}</span>
             <p className="text-lg font-bold text-slate-700 print:text-black mt-1">
-              {parseFloat(String(data.day_price || 0)).toFixed(2)} {t('currency')} / يوم
+              {parseFloat(String(data.day_price || 0)).toFixed(2)} {t('currency')} / {t('day')}
             </p>
             <span className="text-sm text-slate-400 font-bold print:text-slate-700">
-              طريقة الصرف: {data.sal_cash_or_visa == 1 ? 'كاش (نقدي)' : 'فيزا (بنكي)'}
+              {t('salary_payment_method')}: {data.sal_cash_or_visa == 1 ? t('salary_payment_cash') : t('salary_payment_bank')}
             </span>
           </div>
         </div>
@@ -487,7 +497,7 @@ export default function EmployeeSalaryDetailsPage() {
         {/* Previous Month Transferred Balance Warning/Note if exists */}
         {parseFloat(String(data.last_salary_remain_balance || 0)) !== 0 && (
           <div className="m-6 p-4 bg-violet-50 text-violet-700 rounded-2xl border border-violet-100 flex items-center justify-between print:bg-slate-100 print:text-black print:border-black">
-            <span className="font-bold text-sm">الرصيد المرحل من الشهر السابق:</span>
+            <span className="font-bold text-sm">{t('prev_month_balance')}:</span>
             <span className="font-black text-base">{parseFloat(String(data.last_salary_remain_balance || 0)).toFixed(2)} {t('currency')}</span>
           </div>
         )}
@@ -499,35 +509,35 @@ export default function EmployeeSalaryDetailsPage() {
           <div className="bg-emerald-50/20 border border-emerald-50 rounded-2xl p-6 print:border-2 print:border-black print:bg-white print:rounded-none">
             <h3 className="text-lg font-black text-emerald-800 print:text-black mb-4 flex items-center gap-2 pb-2 border-b border-emerald-100/50 print:border-black">
               <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 print:hidden"></span>
-              أولاً: الاستحقاقات
+              {t('first_benefits')}
             </h3>
             
             <div className="space-y-4">
               <div className="flex justify-between items-center py-2 border-b border-slate-100">
-                <span className="text-slate-500 font-bold print:text-black">الراتب الأساسي</span>
+                <span className="text-slate-500 font-bold print:text-black">{t('basic_salary')}</span>
                 <span className="font-black text-slate-800 print:text-black">{parseFloat(String(data.emp_sal || 0)).toFixed(2)} {t('currency')}</span>
               </div>
               <div className="flex justify-between items-center py-2 border-b border-slate-100">
-                <span className="text-slate-500 font-bold print:text-black">الحافز الثابت</span>
+                <span className="text-slate-500 font-bold print:text-black">{t('fixed_motivation')}</span>
                 <span className="font-black text-slate-800 print:text-black">{parseFloat(String(data.motivation || 0)).toFixed(2)} {t('currency')}</span>
               </div>
               <div className="flex justify-between items-center py-2 border-b border-slate-100">
-                <span className="text-slate-500 font-bold print:text-black">المكافأة المالية</span>
+                <span className="text-slate-500 font-bold print:text-black">{t('financial_reward')}</span>
                 <span className="font-black text-slate-800 print:text-black">{parseFloat(String(data.reward || 0)).toFixed(2)} {t('currency')}</span>
               </div>
               <div className="flex justify-between items-center py-2 border-b border-slate-100">
-                <span className="text-slate-500 font-bold print:text-black">البدلات الثابتة</span>
+                <span className="text-slate-500 font-bold print:text-black">{t('fixed_allowances')}</span>
                 <span className="font-black text-slate-800 print:text-black">{parseFloat(String(data.fixed_allowances || 0)).toFixed(2)} {t('currency')}</span>
               </div>
               <div className="flex justify-between items-center py-2 border-b border-slate-100">
-                <span className="text-slate-500 font-bold print:text-black">البدلات المتغيرة</span>
+                <span className="text-slate-500 font-bold print:text-black">{t('variable_allowances')}</span>
                 <span className="font-black text-slate-800 print:text-black">{parseFloat(String(data.changable_allowances || 0)).toFixed(2)} {t('currency')}</span>
               </div>
               <div className="flex justify-between items-center py-2 border-b border-slate-100">
                 <div>
-                  <span className="text-slate-500 font-bold block print:text-black">أيام إضافية</span>
+                  <span className="text-slate-500 font-bold block print:text-black">{t('additional_days')}</span>
                   {parseInt(String(data.additional_days_counter || 0)) > 0 && (
-                    <span className="text-xs text-slate-400 font-bold print:text-slate-700">عدد الأيام: ({data.additional_days_counter})</span>
+                    <span className="text-xs text-slate-400 font-bold print:text-slate-700">{t('days_count')}: ({data.additional_days_counter})</span>
                   )}
                 </div>
                 <span className="font-black text-slate-800 print:text-black">
@@ -536,7 +546,7 @@ export default function EmployeeSalaryDetailsPage() {
               </div>
               
               <div className="flex justify-between items-center pt-4 border-t border-emerald-100 font-black text-emerald-800 print:text-black print:border-black">
-                <span className="text-base">إجمالي الاستحقاقات</span>
+                <span className="text-base">{t('total_benefits')}</span>
                 <span className="text-xl">{parseFloat(String(data.total_benefits || 0)).toFixed(2)} {t('currency')}</span>
               </div>
             </div>
@@ -546,55 +556,55 @@ export default function EmployeeSalaryDetailsPage() {
           <div className="bg-rose-50/20 border border-rose-50 rounded-2xl p-6 print:border-2 print:border-black print:bg-white print:rounded-none">
             <h3 className="text-lg font-black text-rose-800 print:text-black mb-4 flex items-center gap-2 pb-2 border-b border-rose-100/50 print:border-black">
               <span className="w-2.5 h-2.5 rounded-full bg-rose-500 print:hidden"></span>
-              ثانياً: الاستقطاعات
+              {t('second_deductions')}
             </h3>
 
             <div className="space-y-4">
               <div className="flex justify-between items-center py-2 border-b border-slate-100">
-                <span className="text-slate-500 font-bold print:text-black">التأمين الاجتماعي</span>
+                <span className="text-slate-500 font-bold print:text-black">{t('social_insurance')}</span>
                 <span className="font-black text-slate-800 print:text-black">{parseFloat(String(data.socialinsurancecutmonthly || 0)).toFixed(2)} {t('currency')}</span>
               </div>
               <div className="flex justify-between items-center py-2 border-b border-slate-100">
-                <span className="text-slate-500 font-bold print:text-black">التأمين الطبي</span>
+                <span className="text-slate-500 font-bold print:text-black">{t('medical_insurance')}</span>
                 <span className="font-black text-slate-800 print:text-black">{parseFloat(String(data.medicalinsurancecutmonthly || 0)).toFixed(2)} {t('currency')}</span>
               </div>
               <div className="flex justify-between items-center py-2 border-b border-slate-100">
                 <div>
-                  <span className="text-slate-500 font-bold block print:text-black">أيام الغياب</span>
+                  <span className="text-slate-500 font-bold block print:text-black">{t('absence_days')}</span>
                   {parseInt(String(data.absence_days_counter || 0)) > 0 && (
-                    <span className="text-xs text-slate-400 font-bold print:text-slate-700">عدد الأيام: ({data.absence_days_counter})</span>
+                    <span className="text-xs text-slate-400 font-bold print:text-slate-700">{t('days_count')}: ({data.absence_days_counter})</span>
                   )}
                 </div>
                 <span className="font-black text-slate-800 print:text-black">{parseFloat(String(data.absence_days_total || 0)).toFixed(2)} {t('currency')}</span>
               </div>
               <div className="flex justify-between items-center py-2 border-b border-slate-100">
                 <div>
-                  <span className="text-slate-500 font-bold block print:text-black">أيام الجزاءات</span>
+                  <span className="text-slate-500 font-bold block print:text-black">{t('sanctions_days')}</span>
                   {parseInt(String(data.sanctions_days_counter || 0)) > 0 && (
-                    <span className="text-xs text-slate-400 font-bold print:text-slate-700">عدد الأيام: ({data.sanctions_days_counter})</span>
+                    <span className="text-xs text-slate-400 font-bold print:text-slate-700">{t('days_count')}: ({data.sanctions_days_counter})</span>
                   )}
                 </div>
                 <span className="font-black text-slate-800 print:text-black">{parseFloat(String(data.sanctions_days_total || 0)).toFixed(2)} {t('currency')}</span>
               </div>
               <div className="flex justify-between items-center py-2 border-b border-slate-100">
-                <span className="text-slate-500 font-bold print:text-black">سلف شهرية</span>
+                <span className="text-slate-500 font-bold print:text-black">{t('monthly_loans')}</span>
                 <span className="font-black text-slate-800 print:text-black">{parseFloat(String(data.monthly_loan || 0)).toFixed(2)} {t('currency')}</span>
               </div>
               <div className="flex justify-between items-center py-2 border-b border-slate-100">
-                <span className="text-slate-500 font-bold print:text-black">سلف مستديمة</span>
+                <span className="text-slate-500 font-bold print:text-black">{t('permanent_loans')}</span>
                 <span className="font-black text-slate-800 print:text-black">{parseFloat(String(data.permanent_loan || 0)).toFixed(2)} {t('currency')}</span>
               </div>
               <div className="flex justify-between items-center py-2 border-b border-slate-100">
-                <span className="text-slate-500 font-bold print:text-black">الخصومات المالية</span>
+                <span className="text-slate-500 font-bold print:text-black">{t('financial_discounts')}</span>
                 <span className="font-black text-slate-800 print:text-black">{parseFloat(String(data.discount || 0)).toFixed(2)} {t('currency')}</span>
               </div>
               <div className="flex justify-between items-center py-2 border-b border-slate-100">
-                <span className="text-slate-500 font-bold print:text-black">فواتير الهواتف</span>
+                <span className="text-slate-500 font-bold print:text-black">{t('phone_bills')}</span>
                 <span className="font-black text-slate-800 print:text-black">{parseFloat(String(data.phones || 0)).toFixed(2)} {t('currency')}</span>
               </div>
 
               <div className="flex justify-between items-center pt-4 border-t border-rose-100 font-black text-rose-800 print:text-black print:border-black">
-                <span className="text-base">إجمالي الاستقطاعات</span>
+                <span className="text-base">{t('total_deduction')}</span>
                 <span className="text-xl">{parseFloat(String(data.total_deduction || 0)).toFixed(2)} {t('currency')}</span>
               </div>
             </div>
@@ -605,20 +615,20 @@ export default function EmployeeSalaryDetailsPage() {
         {/* Net Salary Summary Block */}
         <div className="m-6 p-8 rounded-3xl bg-slate-900 text-white flex flex-col md:flex-row md:items-center md:justify-between gap-6 print:m-0 print:border-2 print:border-black print:text-black print:bg-white print:rounded-none">
           <div>
-            <h4 className="text-lg font-black text-slate-100 print:text-black mb-1">ثالثاً: صافي الراتب المستحق</h4>
+            <h4 className="text-lg font-black text-slate-100 print:text-black mb-1">{t('third_net_salary')}</h4>
             <p className="text-sm text-slate-400 print:text-slate-700">
               {Number(data.final_the_net) > 0 ? (
-                <span>مبلغ مستحق <strong className="text-emerald-400 print:text-black font-extrabold">لصالح</strong> الموظف</span>
+                <span>{t('amount_due_to_emp')}</span>
               ) : Number(data.final_the_net) < 0 ? (
-                <span>مبلغ مستحق <strong className="text-rose-400 print:text-black font-extrabold">على</strong> الموظف (مديونية)</span>
+                <span>{t('amount_due_from_emp')}</span>
               ) : (
-                <span>صافي الراتب متزن تماماً</span>
+                <span>{t('salary_net_balanced')}</span>
               )}
             </p>
           </div>
 
           <div className="text-right">
-            <span className="text-xs text-slate-400 block uppercase font-bold print:text-slate-700">الصافي النهائي للتسليم</span>
+            <span className="text-xs text-slate-400 block uppercase font-bold print:text-slate-700">{t('final_net_salary')}</span>
             <p className="text-3xl font-black text-violet-400 print:text-black mt-1">
               {parseFloat(String(Math.abs(Number(data.final_the_net || 0)))).toFixed(2)} {t('currency')}
             </p>
@@ -628,19 +638,19 @@ export default function EmployeeSalaryDetailsPage() {
         {/* Archive Timestamp Footer - Shown when archived */}
         {isArchived && (
           <div className="m-6 pt-4 border-t border-slate-100 text-left text-xs text-slate-400 font-bold print:m-0 print:text-slate-700">
-            تمت أرشفة وإغلاق هذا السجل بتاريخ {data.archived_date ? new Date(data.archived_date).toLocaleString('ar-YE') : 'محدد مسبقاً'}
+            {t('record_archived_at')} {data.archived_date ? new Date(data.archived_date).toLocaleString(language === 'ar' ? 'ar-YE' : 'en-US') : t('preset')}
           </div>
         )}
 
         {/* Signature Line for Printing */}
         <div className="hidden print:flex justify-between mt-12 px-6">
           <div className="text-center">
-            <p className="font-bold">توقيع المسؤول</p>
+            <p className="font-bold">{t('officer_signature')}</p>
             <div className="h-16"></div>
             <p className="text-xs text-slate-500">........................</p>
           </div>
           <div className="text-center">
-            <p className="font-bold">توقيع الموظف المستلم</p>
+            <p className="font-bold">{t('recipient_signature')}</p>
             <div className="h-16"></div>
             <p className="text-xs text-slate-500">........................</p>
           </div>

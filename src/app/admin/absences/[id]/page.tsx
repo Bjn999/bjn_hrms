@@ -118,14 +118,14 @@ export default function AbsencesDetailPage() {
 
   const handleSave = async () => {
     if (!form.employee_code || !form.value || !form.day_price) {
-      showToast('يرجى تعبئة جميع الحقول المطلوبة', 'error');
+      showToast(t('fill_required_fields'), 'error');
       return;
     }
 
     if (!editingId) {
       const exists = absences.some((a: AbsenceItem) => String(a.employee_code) === String(form.employee_code));
       if (exists) {
-        const ok = await confirm({ title: 'تنبيه', description: 'هذا الموظف لديه سجل غياب بالفعل في هذا الشهر. هل تريد الإضافة على أي حال؟', icon: 'warning' });
+        const ok = await confirm({ title: t('warning'), description: t('confirm_duplicate_absence'), icon: 'warning' });
         if (!ok) return;
       }
     }
@@ -153,7 +153,7 @@ export default function AbsencesDetailPage() {
   const handleDelete = async (a: AbsenceItem) => {
     if (a.is_archived == 1) { showToast(t('cannot_delete_archived'), 'error'); return; }
     if (!isMonthOpen) { showToast(t('cannot_delete_closed'), 'error'); return; }
-    const ok = await confirm({ title: t('confirm_delete'), description: 'هل أنت متأكد من حذف سجل الغياب؟', icon: 'danger' });
+    const ok = await confirm({ title: t('confirm_delete'), description: t('confirm_delete_absence'), icon: 'danger' });
     if (!ok) return;
     try {
       const res = await fetch(`${API}/absences/${a.id}`, { method: 'DELETE', headers: headers() });
@@ -213,7 +213,7 @@ export default function AbsencesDetailPage() {
               className="bg-slate-800 text-white px-6 py-2.5 rounded-xl hover:shadow-lg hover:shadow-slate-800/30 hover:-translate-y-0.5 transition-all duration-300 font-bold flex items-center gap-2"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" /></svg>
-              طباعة الكشف
+              {t('print_report')}
             </Link>
             {isMonthOpen && (
               <button
@@ -305,7 +305,7 @@ export default function AbsencesDetailPage() {
                         <div className="relative group inline-block mt-2">
                           <button className="flex items-center gap-1 text-xs font-bold text-amber-700 bg-amber-50 px-2 py-1 rounded-lg hover:bg-amber-100 transition-colors">
                             <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
-                            <span>عرض الملاحظة</span>
+                            <span>{t('view_notes')}</span>
                           </button>
                           <div className="absolute z-50 bottom-full mb-2 right-0 w-64 p-3 bg-slate-800 text-white text-xs font-bold rounded-xl opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none shadow-xl whitespace-pre-wrap leading-relaxed">
                             {a.notes}
@@ -315,7 +315,7 @@ export default function AbsencesDetailPage() {
                       )}
                     </td>
                     <td className="px-5 py-4 font-bold text-orange-700">{a.value}</td>
-                    <td className="px-5 py-4 font-bold text-rose-600">{a.total.toFixed(2)}</td>
+                    <td className="px-5 py-4 font-bold text-rose-600">{parseFloat(String(a.total || 0)).toFixed(2)}</td>
                     <td className="px-5 py-4 text-xs font-bold text-slate-500">
                       <div>{new Date(a.created_at).toLocaleDateString('ar-SA')}</div>
                       <div>{new Date(a.created_at).toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' })}</div>
@@ -329,7 +329,7 @@ export default function AbsencesDetailPage() {
                           <div className="text-emerald-600 mt-1">{a.updatedby?.name}</div>
                         </>
                       ) : (
-                        <span>لا يوجد تحديث</span>
+                        <span>{t('no_updates')}</span>
                       )}
                     </td>
                     <td className="px-5 py-4">

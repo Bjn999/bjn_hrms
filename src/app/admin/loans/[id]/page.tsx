@@ -102,14 +102,14 @@ export default function LoansDetailPage() {
 
   const handleSave = async () => {
     if (!form.employee_code || !form.total) {
-      showToast('يرجى تعبئة جميع الحقول المطلوبة', 'error');
+      showToast(t('fill_required_fields'), 'error');
       return;
     }
 
     if (!editingId) {
       const exists = loans.some((a: Loan) => String(a.employee_code) === String(form.employee_code));
       if (exists) {
-        const ok = await confirm({ title: 'تنبيه', description: 'هذا الموظف لديه سلفة بالفعل في هذا الشهر. هل تريد الإضافة على أي حال؟', icon: 'warning' });
+        const ok = await confirm({ title: t('warning'), description: t('confirm_duplicate_loan'), icon: 'warning' });
         if (!ok) return;
       }
     }
@@ -121,7 +121,7 @@ export default function LoansDetailPage() {
       const res = await fetch(url, { method, headers: headers(), body: JSON.stringify(form) });
       const result = await res.json();
       if (result.status) {
-        showToast(editingId ? 'تم تعديل السلفة بنجاح' : 'تم إضافة السلفة بنجاح', 'success');
+        showToast(editingId ? t('loan_updated') : t('loan_added'), 'success');
         setShowModal(false);
         fetchData();
       } else {
@@ -137,12 +137,12 @@ export default function LoansDetailPage() {
   const handleDelete = async (a: Loan) => {
     if (a.is_archived == 1) { showToast(t('cannot_delete_archived'), 'error'); return; }
     if (!isMonthOpen) { showToast(t('cannot_delete_closed'), 'error'); return; }
-    const ok = await confirm({ title: t('confirm_delete'), description: 'هل أنت متأكد من حذف السلفة الشهرية؟', icon: 'danger' });
+    const ok = await confirm({ title: t('confirm_delete'), description: t('confirm_delete_loan'), icon: 'danger' });
     if (!ok) return;
     try {
       const res = await fetch(`${API}/loans/${a.id}`, { method: 'DELETE', headers: headers() });
       const result = await res.json();
-      if (result.status) { showToast('تم حذف السلفة بنجاح', 'success'); fetchData(); }
+      if (result.status) { showToast(t('loan_deleted'), 'success'); fetchData(); }
       else showToast(result.message, 'error');
     } catch {
       showToast(t('conn_error'), 'error');
@@ -172,7 +172,7 @@ export default function LoansDetailPage() {
             <Link href="/admin/loans" className="p-2 rounded-xl hover:bg-slate-100 transition-colors text-slate-500">
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
             </Link>
-            <h2 className="text-2xl font-black text-slate-800">السلف الشهرية</h2>
+            <h2 className="text-2xl font-black text-slate-800">{t('monthly_loans')}</h2>
           </div>
           {financeMonth && (
             <div className="flex items-center gap-3 flex-wrap mr-10">
@@ -188,25 +188,25 @@ export default function LoansDetailPage() {
             </div>
           )}
         </div>
-          <div className="flex items-center gap-3">
-            <Link
-              href={`/admin/loans/print/${monthId}`}
-              target="_blank"
-              className="bg-slate-800 text-white px-6 py-2.5 rounded-xl hover:shadow-lg hover:shadow-slate-800/30 hover:-translate-y-0.5 transition-all duration-300 font-bold flex items-center gap-2"
+        <div className="flex items-center gap-3">
+          <Link
+            href={`/admin/loans/print/${monthId}`}
+            target="_blank"
+            className="bg-slate-800 text-white px-6 py-2.5 rounded-xl hover:shadow-lg hover:shadow-slate-800/30 hover:-translate-y-0.5 transition-all duration-300 font-bold flex items-center gap-2"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" /></svg>
+            {t('print_report')}
+          </Link>
+          {isMonthOpen && (
+            <button
+              onClick={openAddModal}
+              className="bg-gradient-to-r from-sky-500 to-blue-500 text-white px-6 py-2.5 rounded-xl hover:shadow-lg hover:shadow-sky-500/30 hover:-translate-y-0.5 transition-all duration-300 font-bold flex items-center gap-2"
             >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" /></svg>
-              طباعة الكشف
-            </Link>
-            {isMonthOpen && (
-              <button
-                onClick={openAddModal}
-                className="bg-gradient-to-r from-sky-500 to-blue-500 text-white px-6 py-2.5 rounded-xl hover:shadow-lg hover:shadow-sky-500/30 hover:-translate-y-0.5 transition-all duration-300 font-bold flex items-center gap-2"
-              >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
-                إضافة سلفة
-              </button>
-            )}
-          </div>
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
+              {t('add_loan_btn')}
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Stats */}
@@ -216,7 +216,7 @@ export default function LoansDetailPage() {
             <svg className="w-6 h-6 text-sky-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
           </div>
           <div>
-            <p className="text-xs text-slate-500 font-bold uppercase">إجمالي الحركات</p>
+            <p className="text-xs text-slate-500 font-bold uppercase">{t('stats_movements_count')}</p>
             <p className="text-2xl font-black text-slate-800">{filteredLoans.length}</p>
           </div>
         </div>
@@ -225,7 +225,7 @@ export default function LoansDetailPage() {
             <svg className="w-6 h-6 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
           </div>
           <div>
-            <p className="text-xs text-slate-500 font-bold uppercase">إجمالي المبالغ</p>
+            <p className="text-xs text-slate-500 font-bold uppercase">{t('stats_total_amounts')}</p>
             <p className="text-2xl font-black text-slate-800">{totalAmount.toFixed(2)}</p>
           </div>
         </div>
@@ -277,7 +277,7 @@ export default function LoansDetailPage() {
                         <div className="relative group inline-block mt-2">
                           <button className="flex items-center gap-1 text-xs font-bold text-amber-700 bg-amber-50 px-2 py-1 rounded-lg hover:bg-amber-100 transition-colors">
                             <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
-                            <span>عرض الملاحظة</span>
+                            <span>{t('view_notes')}</span>
                           </button>
                           <div className="absolute z-50 bottom-full mb-2 right-0 w-64 p-3 bg-slate-800 text-white text-xs font-bold rounded-xl opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none shadow-xl whitespace-pre-wrap leading-relaxed">
                             {a.notes}
@@ -300,7 +300,7 @@ export default function LoansDetailPage() {
                           <div className="text-emerald-600 mt-1">{a.updatedby?.name}</div>
                         </>
                       ) : (
-                        <span>لا يوجد تحديث</span>
+                        <span>{t('no_updates')}</span>
                       )}
                     </td>
                     <td className="px-5 py-4">

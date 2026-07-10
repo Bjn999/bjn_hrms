@@ -124,7 +124,7 @@ export default function AbsencesPrintPage() {
                 {item.employee?.emp_name || ''}
               </td>
               <td className="border border-black p-2">{item.value} يوم</td>
-              <td className="border border-black p-2">{item.total.toFixed(2)} {t('currency')}</td>
+              <td className="border border-black p-2">{parseFloat(String(item.total || 0)).toFixed(2)} {t('currency')}</td>
               <td className="border border-black p-2 max-w-[200px] break-words whitespace-pre-wrap">{item.notes || '-'}</td>
             </tr>
           ))}

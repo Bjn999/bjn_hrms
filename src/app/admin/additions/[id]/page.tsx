@@ -125,14 +125,14 @@ export default function AdditionsDetailPage() {
 
   const handleSave = async () => {
     if (!form.employee_code || !form.value || !form.day_price) {
-      showToast('يرجى تعبئة جميع الحقول المطلوبة', 'error');
+      showToast(t('fill_required_fields'), 'error');
       return;
     }
 
     if (!editingId) {
       const exists = additions.some((a: AdditionItem) => String(a.employee_code) === String(form.employee_code));
       if (exists) {
-        const ok = await confirm({ title: 'تنبيه', description: 'هذا الموظف لديه إضافي أيام بالفعل في هذا الشهر. هل تريد الإضافة على أي حال؟', icon: 'warning' });
+        const ok = await confirm({ title: t('warning'), description: t('confirm_duplicate_addition'), icon: 'warning' });
         if (!ok) return;
       }
     }
@@ -148,7 +148,7 @@ export default function AdditionsDetailPage() {
       });
       const result = await res.json();
       if (result.status) {
-        showToast('تم حفظ الإضافي بنجاح', 'success');
+        showToast(editingId ? t('addition_updated') : t('addition_added'), 'success');
         setShowModal(false);
         fetchData();
       } else {
@@ -164,12 +164,12 @@ export default function AdditionsDetailPage() {
   const handleDelete = async (a: AdditionItem) => {
     if (a.is_archived == 1) { showToast(t('cannot_delete_archived'), 'error'); return; }
     if (!isMonthOpen) { showToast(t('cannot_delete_closed'), 'error'); return; }
-    const ok = await confirm({ title: t('confirm_delete'), description: 'هل أنت متأكد من حذف الإضافي؟', icon: 'danger' });
+    const ok = await confirm({ title: t('confirm_delete'), description: t('confirm_delete_addition'), icon: 'danger' });
     if (!ok) return;
     try {
       const res = await fetch(`${API}/additions/${a.id}`, { method: 'DELETE', headers: headers() });
       const result = await res.json();
-      if (result.status) { showToast('تم حذف الإضافي بنجاح', 'success'); fetchData(); }
+      if (result.status) { showToast(t('addition_deleted'), 'success'); fetchData(); }
       else showToast(result.message, 'error');
     } catch {
       showToast(t('conn_error'), 'error');
@@ -201,7 +201,7 @@ export default function AdditionsDetailPage() {
             <Link href="/admin/employee-salaries" className="p-2 rounded-xl hover:bg-slate-100 transition-colors text-slate-500">
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
             </Link>
-            <h2 className="text-2xl font-black text-slate-800">إضافي الأيام</h2>
+            <h2 className="text-2xl font-black text-slate-800">{t('additional_days')}</h2>
           </div>
           {financeMonth && (
             <div className="flex items-center gap-3 flex-wrap mr-10">
@@ -224,7 +224,7 @@ export default function AdditionsDetailPage() {
               className="bg-slate-800 text-white px-6 py-2.5 rounded-xl hover:shadow-lg hover:shadow-slate-800/30 hover:-translate-y-0.5 transition-all duration-300 font-bold flex items-center gap-2"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" /></svg>
-              طباعة الكشف
+              {t('print_report')}
             </Link>
             {isMonthOpen && (
               <button
@@ -232,7 +232,7 @@ export default function AdditionsDetailPage() {
                 className="bg-gradient-to-r from-emerald-500 to-teal-600 text-white px-6 py-2.5 rounded-xl hover:shadow-lg hover:shadow-emerald-500/30 hover:-translate-y-0.5 transition-all duration-300 font-bold flex items-center gap-2"
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
-                إضافة إضافات أيام
+                {t('add_addition')}
               </button>
             )}
           </div>
@@ -245,7 +245,7 @@ export default function AdditionsDetailPage() {
             <svg className="w-6 h-6 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" /></svg>
           </div>
           <div>
-            <p className="text-xs text-slate-500 font-bold uppercase">عدد الحركات</p>
+            <p className="text-xs text-slate-500 font-bold uppercase">{t('stats_movements_count')}</p>
             <p className="text-2xl font-black text-slate-800">{additions.length}</p>
           </div>
         </div>
@@ -254,7 +254,7 @@ export default function AdditionsDetailPage() {
             <svg className="w-6 h-6 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
           </div>
           <div>
-            <p className="text-xs text-slate-500 font-bold uppercase">إجمالي الأيام</p>
+            <p className="text-xs text-slate-500 font-bold uppercase">{t('days_count')}</p>
             <p className="text-2xl font-black text-slate-800">{days.toFixed(1)}</p>
           </div>
         </div>
@@ -263,7 +263,7 @@ export default function AdditionsDetailPage() {
             <svg className="w-6 h-6 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
           </div>
           <div>
-            <p className="text-xs text-slate-500 font-bold uppercase">إجمالي القيمة</p>
+            <p className="text-xs text-slate-500 font-bold uppercase">{t('stats_total_amounts')}</p>
             <p className="text-2xl font-black text-slate-800">{total.toFixed(2)}</p>
           </div>
         </div>
@@ -294,8 +294,8 @@ export default function AdditionsDetailPage() {
             <thead className="bg-slate-50 text-slate-700 uppercase border-b border-slate-100">
               <tr>
                 <th className="px-5 py-4">{t('employee_name')}</th>
-                <th className="px-5 py-4">عدد الأيام</th>
-                <th className="px-5 py-4">الإجمالي</th>
+                <th className="px-5 py-4">{t('days')}</th>
+                <th className="px-5 py-4">{t('total_amount')}</th>
                 <th className="px-5 py-4">{t('added_by')}</th>
                 <th className="px-5 py-4">{t('updated_by')}</th>
                 <th className="px-5 py-4">{t('status')}</th>
@@ -319,7 +319,7 @@ export default function AdditionsDetailPage() {
                         <div className="relative group inline-block mt-2">
                           <button className="flex items-center gap-1 text-xs font-bold text-indigo-700 bg-indigo-50 px-2 py-1 rounded-lg hover:bg-indigo-100 transition-colors">
                             <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
-                            <span>عرض الملاحظة</span>
+                            <span>{t('view_notes')}</span>
                           </button>
                           <div className="absolute z-50 bottom-full mb-2 right-0 w-64 p-3 bg-slate-800 text-white text-xs font-bold rounded-xl opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none shadow-xl whitespace-pre-wrap leading-relaxed">
                             {a.notes}
@@ -328,8 +328,8 @@ export default function AdditionsDetailPage() {
                         </div>
                       ) : null}
                     </td>
-                    <td className="px-5 py-4 font-bold text-indigo-600">{a.value} أيام</td>
-                    <td className="px-5 py-4 font-bold text-emerald-600">{a.total.toFixed(2)}</td>
+                    <td className="px-5 py-4 font-bold text-indigo-600">{a.value} {t('days')}</td>
+                    <td className="px-5 py-4 font-bold text-emerald-600">{parseFloat(String(a.total || 0)).toFixed(2)}</td>
                     <td className="px-5 py-4 text-xs font-bold text-slate-500">
                       <div>{new Date(a.created_at).toLocaleDateString('ar-SA')}</div>
                       <div>{new Date(a.created_at).toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' })}</div>

@@ -111,14 +111,14 @@ export default function RewardsDetailPage() {
 
   const handleSave = async () => {
     if (!form.employee_code || !form.additions_type_id || !form.total) {
-      showToast('يرجى تعبئة جميع الحقول المطلوبة', 'error');
+      showToast(t('fill_required_fields'), 'error');
       return;
     }
 
     if (!editingId) {
       const exists = rewards.some((a: RewardItem) => String(a.employee_code) === String(form.employee_code) && String(a.additions_type_id) === String(form.additions_type_id));
       if (exists) {
-        const ok = await confirm({ title: 'تنبيه', description: 'هذا الموظف لديه مكافأة من نفس النوع في هذا الشهر. هل تريد الإضافة على أي حال؟', icon: 'warning' });
+        const ok = await confirm({ title: t('warning'), description: t('confirm_duplicate_reward'), icon: 'warning' });
         if (!ok) return;
       }
     }
@@ -134,7 +134,7 @@ export default function RewardsDetailPage() {
       });
       const result = await res.json();
       if (result.status) {
-        showToast('تم حفظ المكافأة بنجاح', 'success');
+        showToast(editingId ? t('reward_updated') : t('reward_added'), 'success');
         setShowModal(false);
         fetchData();
       } else {
@@ -150,12 +150,12 @@ export default function RewardsDetailPage() {
   const handleDelete = async (a: RewardItem) => {
     if (a.is_archived == 1) { showToast(t('cannot_delete_archived'), 'error'); return; }
     if (!isMonthOpen) { showToast(t('cannot_delete_closed'), 'error'); return; }
-    const ok = await confirm({ title: t('confirm_delete'), description: 'هل أنت متأكد من حذف المكافأة؟', icon: 'danger' });
+    const ok = await confirm({ title: t('confirm_delete'), description: t('confirm_delete_reward'), icon: 'danger' });
     if (!ok) return;
     try {
       const res = await fetch(`${API}/rewards/${a.id}`, { method: 'DELETE', headers: headers() });
       const result = await res.json();
-      if (result.status) { showToast('تم حذف المكافأة بنجاح', 'success'); fetchData(); }
+      if (result.status) { showToast(t('reward_deleted'), 'success'); fetchData(); }
       else showToast(result.message, 'error');
     } catch {
       showToast(t('conn_error'), 'error');
@@ -187,7 +187,7 @@ export default function RewardsDetailPage() {
             <Link href="/admin/employee-salaries" className="p-2 rounded-xl hover:bg-slate-100 transition-colors text-slate-500">
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
             </Link>
-            <h2 className="text-2xl font-black text-slate-800">المكافآت المالية</h2>
+            <h2 className="text-2xl font-black text-slate-800">{t('financial_rewards')}</h2>
           </div>
           {financeMonth && (
             <div className="flex items-center gap-3 flex-wrap mr-10">
@@ -210,7 +210,7 @@ export default function RewardsDetailPage() {
               className="bg-slate-800 text-white px-6 py-2.5 rounded-xl hover:shadow-lg hover:shadow-slate-800/30 hover:-translate-y-0.5 transition-all duration-300 font-bold flex items-center gap-2"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" /></svg>
-              طباعة الكشف
+              {t('print_report')}
             </Link>
             {isMonthOpen && (
               <button
@@ -218,7 +218,7 @@ export default function RewardsDetailPage() {
                 className="bg-gradient-to-r from-indigo-500 to-blue-600 text-white px-6 py-2.5 rounded-xl hover:shadow-lg hover:shadow-indigo-500/30 hover:-translate-y-0.5 transition-all duration-300 font-bold flex items-center gap-2"
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
-                إضافة مكافأة
+                {t('add_reward')}
               </button>
             )}
           </div>
@@ -231,7 +231,7 @@ export default function RewardsDetailPage() {
             <svg className="w-6 h-6 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
           </div>
           <div>
-            <p className="text-xs text-slate-500 font-bold uppercase">عدد المكافآت</p>
+            <p className="text-xs text-slate-500 font-bold uppercase">{t('stats_movements_count')}</p>
             <p className="text-2xl font-black text-slate-800">{rewards.length}</p>
           </div>
         </div>
@@ -240,7 +240,7 @@ export default function RewardsDetailPage() {
             <svg className="w-6 h-6 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
           </div>
           <div>
-            <p className="text-xs text-slate-500 font-bold uppercase">إجمالي القيمة</p>
+            <p className="text-xs text-slate-500 font-bold uppercase">{t('stats_total_amounts')}</p>
             <p className="text-2xl font-black text-slate-800">{total.toFixed(2)}</p>
           </div>
         </div>
@@ -270,8 +270,8 @@ export default function RewardsDetailPage() {
             <thead className="bg-slate-50 text-slate-700 uppercase border-b border-slate-100">
               <tr>
                 <th className="px-5 py-4">{t('employee_name')}</th>
-                <th className="px-5 py-4">نوع المكافأة</th>
-                <th className="px-5 py-4">الإجمالي</th>
+                <th className="px-5 py-4">{t('reward_type')}</th>
+                <th className="px-5 py-4">{t('total_amount')}</th>
                 <th className="px-5 py-4">{t('added_by')}</th>
                 <th className="px-5 py-4">{t('updated_by')}</th>
                 <th className="px-5 py-4">{t('status')}</th>
@@ -284,7 +284,7 @@ export default function RewardsDetailPage() {
                 const canAct = isMonthOpen && !isArchived;
                 const emp = employees.find((e: RewardsEmployee) => String(e.employee_code) === String(a.employee_code));
                 const empName = a.employee?.emp_name || emp?.emp_name || a.employee_code;
-                const typeName = types.find((t: RewardType) => t.id == a.additions_type_id)?.name || 'غير محدد';
+                const typeName = types.find((t: RewardType) => t.id == a.additions_type_id)?.name || t('not_specified');
                 
                 return (
                   <tr key={a.id} className={`border-b border-slate-50 transition-colors ${isArchived ? 'opacity-60 bg-slate-50/30' : 'hover:bg-slate-50/50'}`}>
@@ -296,7 +296,7 @@ export default function RewardsDetailPage() {
                         <div className="relative group inline-block mt-2">
                           <button className="flex items-center gap-1 text-xs font-bold text-indigo-700 bg-indigo-50 px-2 py-1 rounded-lg hover:bg-indigo-100 transition-colors">
                             <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
-                            <span>عرض الملاحظة</span>
+                            <span>{t('view_notes')}</span>
                           </button>
                           <div className="absolute z-50 bottom-full mb-2 right-0 w-64 p-3 bg-slate-800 text-white text-xs font-bold rounded-xl opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none shadow-xl whitespace-pre-wrap leading-relaxed">
                             {a.notes}

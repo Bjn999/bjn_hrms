@@ -95,13 +95,13 @@ export default function AllowancesIndexPage() {
           <table className="w-full text-sm text-right">
             <thead className="bg-slate-50 text-slate-700 uppercase border-b border-slate-100">
               <tr>
-                <th className="px-5 py-4 font-bold uppercase text-xs tracking-wider">اسم الشهر عربي</th>
-                <th className="px-5 py-4 font-bold uppercase text-xs tracking-wider">تاريخ البداية</th>
-                <th className="px-5 py-4 font-bold uppercase text-xs tracking-wider">تاريخ النهاية</th>
-                <th className="px-5 py-4 font-bold uppercase text-xs tracking-wider">بداية البصمة</th>
-                <th className="px-5 py-4 font-bold uppercase text-xs tracking-wider">نهاية البصمة</th>
-                <th className="px-5 py-4 font-bold uppercase text-xs tracking-wider">عدد الأيام</th>
-                <th className="px-5 py-4 font-bold uppercase text-xs tracking-wider text-center">حالة الشهر</th>
+                <th className="px-5 py-4 font-bold uppercase text-xs tracking-wider">{t('month_name_ar')}</th>
+                <th className="px-5 py-4 font-bold uppercase text-xs tracking-wider">{t('start_date_label')}</th>
+                <th className="px-5 py-4 font-bold uppercase text-xs tracking-wider">{t('end_date_label')}</th>
+                <th className="px-5 py-4 font-bold uppercase text-xs tracking-wider">{t('start_fingerprint')}</th>
+                <th className="px-5 py-4 font-bold uppercase text-xs tracking-wider">{t('end_fingerprint')}</th>
+                <th className="px-5 py-4 font-bold uppercase text-xs tracking-wider">{t('days_number')}</th>
+                <th className="px-5 py-4 font-bold uppercase text-xs tracking-wider text-center">{t('month_status')}</th>
               </tr>
             </thead>
             <tbody>
@@ -118,28 +118,28 @@ export default function AllowancesIndexPage() {
                       <div className="flex items-center justify-center gap-3">
                         {item.is_open == 1 ? (
                           <>
-                            <span className="font-bold text-emerald-600">مفتوح</span>
+                            <span className="font-bold text-emerald-600">{t('month_open')}</span>
                             <Link
                               href={`/admin/allowances/${item.id}`}
                               className="inline-flex items-center gap-1.5 px-4 py-2 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 rounded-xl transition-colors font-bold text-xs"
                             >
                               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
-                              عرض
+                              {t('show_details')}
                             </Link>
                           </>
                         ) : item.is_open == 2 ? (
                           <>
-                            <span className="font-bold text-rose-600">مغلق</span>
+                            <span className="font-bold text-rose-600">{t('month_closed')}</span>
                             <Link
                               href={`/admin/allowances/${item.id}`}
                               className="inline-flex items-center gap-1.5 px-4 py-2 bg-rose-50 text-rose-700 hover:bg-rose-100 rounded-xl transition-colors font-bold text-xs"
                             >
                               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
-                              عرض
+                              {t('show_details')}
                             </Link>
                           </>
                         ) : (
-                          <span className="font-bold text-slate-500">بانتظار الفتح</span>
+                          <span className="font-bold text-slate-500">{t('month_waiting_open')}</span>
                         )}
                       </div>
                     </td>
@@ -150,7 +150,7 @@ export default function AllowancesIndexPage() {
           </table>
           {data.length === 0 && (
             <div className="text-center py-20">
-              <p className="text-slate-500 font-bold">لا يوجد سجلات</p>
+              <p className="text-slate-500 font-bold">{t('no_months_found')}</p>
             </div>
           )}
         </div>

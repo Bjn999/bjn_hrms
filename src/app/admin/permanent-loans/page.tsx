@@ -113,8 +113,8 @@ export default function PermanentLoansPage() {
   };
 
   const openEditModal = (a: PermanentLoan) => {
-    if (a.is_archived == 1) { showToast('لا يمكن تعديل سلفة مؤرشفة', 'error'); return; }
-    if (a.is_dismissal == 1) { showToast('لا يمكن تعديل سلفة تم صرفها', 'error'); return; }
+    if (a.is_archived == 1) { showToast(t('loan_already_archived'), 'error'); return; }
+    if (a.is_dismissal == 1) { showToast(t('cannot_edit_dismissed'), 'error'); return; }
     setEditingId(a.id);
     setForm({
       employee_code: a.employee_code,
@@ -130,14 +130,14 @@ export default function PermanentLoansPage() {
 
   const handleSave = async () => {
     if (!form.employee_code || !form.total || !form.months_number || !form.monthly_installment_value || !form.year_and_month_start_date) {
-      showToast('يرجى تعبئة جميع الحقول المطلوبة', 'error');
+      showToast(t('fill_required_fields'), 'error');
       return;
     }
 
     if (!editingId) {
       const exists = loans.some((a: PermanentLoan) => String(a.employee_code) === String(form.employee_code) && a.is_dismissal == 0);
       if (exists) {
-        const ok = await confirm({ title: 'تنبيه', description: 'هذا الموظف لديه سلفة مستدامة أخرى قيد الانتظار لم يتم صرفها. هل تريد الإضافة على أي حال؟', icon: 'warning' });
+        const ok = await confirm({ title: t('warning'), description: t('confirm_duplicate_permanent_loan'), icon: 'warning' });
         if (!ok) return;
       }
     }
@@ -163,14 +163,14 @@ export default function PermanentLoansPage() {
   };
 
   const handleDelete = async (a: PermanentLoan) => {
-    if (a.is_archived == 1) { showToast('لا يمكن حذف سلفة مؤرشفة', 'error'); return; }
-    if (a.is_dismissal == 1) { showToast('لا يمكن حذف سلفة تم صرفها', 'error'); return; }
-    const ok = await confirm({ title: t('confirm_delete'), description: 'هل أنت متأكد من حذف السلفة المستدامة؟ سيتم حذف كافة الأقساط المرتبطة بها.', icon: 'danger' });
+    if (a.is_archived == 1) { showToast(t('loan_already_archived'), 'error'); return; }
+    if (a.is_dismissal == 1) { showToast(t('cannot_delete_dismissed'), 'error'); return; }
+    const ok = await confirm({ title: t('confirm_delete'), description: t('confirm_delete_permanent_loan'), icon: 'danger' });
     if (!ok) return;
     try {
       const res = await fetch(`${API}/permanent-loans/${a.id}`, { method: 'DELETE', headers: headers() });
       const result = await res.json();
-      if (result.status) { showToast('تم حذف السلفة بنجاح', 'success'); fetchData(); }
+      if (result.status) { showToast(t('permanent_loan_deleted'), 'success'); fetchData(); }
       else showToast(result.message, 'error');
     } catch {
       showToast(t('conn_error'), 'error');
@@ -178,14 +178,14 @@ export default function PermanentLoansPage() {
   };
 
   const handleDismiss = async (a: PermanentLoan) => {
-    if (a.is_archived == 1) { showToast('تم أرشفة هذه السلفة', 'error'); return; }
-    if (a.is_dismissal == 1) { showToast('تم صرف هذه السلفة مسبقاً', 'error'); return; }
-    const ok = await confirm({ title: 'اعتماد الصرف', description: 'هل أنت متأكد من صرف هذه السلفة؟ لا يمكن التراجع أو التعديل بعد الصرف وسيبدأ الخصم من الرواتب.', icon: 'warning' });
+    if (a.is_archived == 1) { showToast(t('loan_already_archived'), 'error'); return; }
+    if (a.is_dismissal == 1) { showToast(t('loan_already_dismissed'), 'error'); return; }
+    const ok = await confirm({ title: t('confirm_dismissal_title'), description: t('confirm_dismissal_desc'), icon: 'warning' });
     if (!ok) return;
     try {
       const res = await fetch(`${API}/permanent-loans/${a.id}/dismiss`, { method: 'POST', headers: headers() });
       const result = await res.json();
-      if (result.status) { showToast('تم صرف السلفة واعتماد الأقساط بنجاح', 'success'); fetchData(); }
+      if (result.status) { showToast(t('loan_dismissed_success'), 'success'); fetchData(); }
       else showToast(result.message, 'error');
     } catch {
       showToast(t('conn_error'), 'error');
@@ -242,7 +242,7 @@ export default function PermanentLoansPage() {
     return empName.includes(query) || empCode.includes(query) || notes.includes(query) || total.includes(query) || isDismissal.includes(query) || isArchived.includes(query);
   });
 
-  const totalAmount = filteredLoans.reduce((s: number, a: PermanentLoan) => s + (a.total || 0), 0);
+  const totalAmount = filteredLoans.reduce((s: number, a: PermanentLoan) => s + parseFloat(String(a.total || 0)), 0);
 
   if (loading) return <LoadingScreen />;
 
@@ -254,8 +254,8 @@ export default function PermanentLoansPage() {
             <svg className="w-6 h-6 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
           </div>
           <div>
-            <h2 className="text-2xl font-black text-slate-800">السلف المستدامة</h2>
-            <p className="text-sm font-bold text-slate-500 mt-1">إدارة سلف الموظفين الطويلة وتوزيع الأقساط</p>
+            <h2 className="text-2xl font-black text-slate-800">{t('permanent_loans_title')}</h2>
+            <p className="text-sm font-bold text-slate-500 mt-1">{t('permanent_loans_desc')}</p>
           </div>
         </div>
         <div className="flex items-center gap-3">
@@ -265,14 +265,14 @@ export default function PermanentLoansPage() {
             className="bg-slate-800 text-white px-6 py-2.5 rounded-xl hover:shadow-lg hover:shadow-slate-800/30 hover:-translate-y-0.5 transition-all duration-300 font-bold flex items-center gap-2"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" /></svg>
-            طباعة الكشف
+            {t('print_report')}
           </Link>
           <button
             onClick={openAddModal}
             className="bg-gradient-to-r from-indigo-500 to-blue-500 text-white px-6 py-2.5 rounded-xl hover:shadow-lg hover:shadow-indigo-500/30 hover:-translate-y-0.5 transition-all duration-300 font-bold flex items-center gap-2"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
-            إضافة سلفة
+            {t('add_loan')}
           </button>
         </div>
       </div>
@@ -284,7 +284,7 @@ export default function PermanentLoansPage() {
             <svg className="w-6 h-6 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
           </div>
           <div>
-            <p className="text-xs text-slate-500 font-bold uppercase">إجمالي الحركات</p>
+            <p className="text-xs text-slate-500 font-bold uppercase">{t('stats_movements_count')}</p>
             <p className="text-2xl font-black text-slate-800">{filteredLoans.length}</p>
           </div>
         </div>
@@ -293,7 +293,7 @@ export default function PermanentLoansPage() {
             <svg className="w-6 h-6 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
           </div>
           <div>
-            <p className="text-xs text-slate-500 font-bold uppercase">إجمالي المبالغ</p>
+            <p className="text-xs text-slate-500 font-bold uppercase">{t('stats_total_amounts')}</p>
             <p className="text-2xl font-black text-slate-800">{totalAmount.toFixed(2)}</p>
           </div>
         </div>
@@ -323,11 +323,11 @@ export default function PermanentLoansPage() {
             <thead className="bg-slate-50 text-slate-700 uppercase border-b border-slate-100">
               <tr>
                 <th className="px-5 py-4">{t('employee_name')}</th>
-                <th className="px-5 py-4">قيمة السلفة</th>
-                <th className="px-5 py-4">عدد الأشهر</th>
-                <th className="px-5 py-4">القسط الشهري</th>
-                <th className="px-5 py-4">حالة الصرف</th>
-                <th className="px-5 py-4">هل انتهت؟</th>
+                <th className="px-5 py-4">{t('loan_amount')}</th>
+                <th className="px-5 py-4">{t('months_count')}</th>
+                <th className="px-5 py-4">{t('monthly_installment')}</th>
+                <th className="px-5 py-4">{t('dismissal_status')}</th>
+                <th className="px-5 py-4">{t('is_ended')}</th>
                 <th className="px-5 py-4 text-center">{t('actions')}</th>
               </tr>
             </thead>
@@ -349,7 +349,7 @@ export default function PermanentLoansPage() {
                         <div className="relative group inline-block mt-2">
                           <button className="flex items-center gap-1 text-xs font-bold text-indigo-700 bg-indigo-50 px-2 py-1 rounded-lg hover:bg-indigo-100 transition-colors">
                             <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
-                            <span>عرض الملاحظة</span>
+                            <span>{t('view_notes')}</span>
                           </button>
                           <div className="absolute z-50 bottom-full mb-2 right-0 w-64 p-3 bg-slate-800 text-white text-xs font-bold rounded-xl opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none shadow-xl whitespace-pre-wrap leading-relaxed">
                             {a.notes}
@@ -372,12 +372,12 @@ export default function PermanentLoansPage() {
                       {isDismissed ? (
                         <span className="px-2 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-700 flex items-center gap-1 w-max">
                           <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>
-                          تم الصرف
+                          {t('dismissed')}
                         </span>
                       ) : (
                         <span className="px-2 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-700 flex items-center gap-1 w-max">
                           <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                          بانتظار الصرف
+                          {t('pending_dismissal')}
                         </span>
                       )}
                     </td>
@@ -385,12 +385,12 @@ export default function PermanentLoansPage() {
                       {isArchived ? (
                         <span className="px-2 py-1 rounded-full text-xs font-bold bg-slate-100 text-slate-600 flex items-center gap-1 w-max">
                           <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" /></svg>
-                          مؤرشفة (منتهية)
+                          {t('ended')}
                         </span>
                       ) : (
                         <span className="px-2 py-1 rounded-full text-xs font-bold bg-sky-100 text-sky-700 flex items-center gap-1 w-max">
                           <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
-                          مستمرة
+                          {t('active_loan')}
                         </span>
                       )}
                     </td>
@@ -402,7 +402,7 @@ export default function PermanentLoansPage() {
                             className="text-xs font-bold bg-indigo-50 text-indigo-700 px-3 py-1.5 rounded-lg hover:bg-indigo-600 hover:text-white transition-colors border border-indigo-200 hover:border-transparent flex items-center gap-1"
                           >
                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                            صرف
+                            {t('payout_action')}
                           </button>
                         )}
                         <button
@@ -410,19 +410,19 @@ export default function PermanentLoansPage() {
                           className="text-xs font-bold bg-slate-50 text-slate-700 px-3 py-1.5 rounded-lg hover:bg-slate-800 hover:text-white transition-colors border border-slate-200 hover:border-transparent flex items-center gap-1"
                         >
                           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 10h16M4 14h16M4 18h16" /></svg>
-                          الأقساط
+                          {t('installments')}
                         </button>
                         <button
                           onClick={() => openEditModal(a)}
                           className={`p-2 rounded-lg transition-colors ${canAct ? 'text-amber-500 hover:bg-amber-50' : 'text-slate-300 cursor-not-allowed'}`}
-                          title={!canAct ? 'لا يمكن التعديل' : t('edit')}
+                          title={!canAct ? t('cannot_edit_loan') : t('edit')}
                         >
                           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
                         </button>
                         <button
                           onClick={() => handleDelete(a)}
                           className={`p-2 rounded-lg transition-colors ${canAct ? 'text-rose-500 hover:bg-rose-50' : 'text-slate-300 cursor-not-allowed'}`}
-                          title={!canAct ? 'لا يمكن الحذف' : t('delete')}
+                          title={!canAct ? t('cannot_delete_loan') : t('delete')}
                         >
                           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
                         </button>
@@ -438,7 +438,7 @@ export default function PermanentLoansPage() {
               <div className="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-4">
                 <svg className="w-10 h-10 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" /></svg>
               </div>
-              <p className="text-slate-500 font-bold">لا يوجد سلف مستدامة</p>
+              <p className="text-slate-500 font-bold">{t('no_permanent_loans_found')}</p>
             </div>
           )}
         </div>
@@ -450,7 +450,7 @@ export default function PermanentLoansPage() {
           <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onClick={() => setShowModal(false)}></div>
           <div className="bg-white rounded-3xl shadow-2xl w-full max-w-2xl overflow-hidden relative z-10 animate-scale-up flex flex-col max-h-[90vh]">
             <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50">
-              <h3 className="text-lg font-black text-slate-800">{editingId ? 'تعديل سلفة مستدامة' : 'إضافة سلفة مستدامة'}</h3>
+              <h3 className="text-lg font-black text-slate-800">{editingId ? t('edit_permanent_loan') : t('add_permanent_loan')}</h3>
               <button onClick={() => setShowModal(false)} className="p-2 rounded-xl hover:bg-slate-100 text-slate-500 transition-colors">
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
               </button>
@@ -472,46 +472,46 @@ export default function PermanentLoansPage() {
                 </div>
                 
                 <div>
-                  <label className="block text-xs font-bold text-slate-500 mb-2 uppercase">إجمالي السلفة *</label>
+                  <label className="block text-xs font-bold text-slate-500 mb-2 uppercase">{t('total_loan_amount')}</label>
                   <input
                     type="number" min="1" step="1"
                     value={form.total}
                     onChange={e => handleTotalChange(e.target.value)}
                     className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none text-slate-700 font-bold focus:ring-2 focus:ring-indigo-500/20"
-                    placeholder="مثال: 5000"
+                    placeholder={t('placeholder_example_amount')}
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-slate-500 mb-2 uppercase">عدد أشهر السداد *</label>
+                  <label className="block text-xs font-bold text-slate-500 mb-2 uppercase">{t('months_payment_count')}</label>
                   <input
                     type="number" min="1" step="1"
                     value={form.months_number}
                     onChange={e => handleMonthsChange(e.target.value)}
                     className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none text-slate-700 font-bold focus:ring-2 focus:ring-indigo-500/20"
-                    placeholder="مثال: 5"
+                    placeholder={t('placeholder_example_months')}
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-slate-500 mb-2 uppercase">قيمة القسط الشهري *</label>
+                  <label className="block text-xs font-bold text-slate-500 mb-2 uppercase">{t('monthly_installment_val_label')}</label>
                   <input
                     type="number" readOnly
                     value={form.monthly_installment_value}
                     className="w-full px-4 py-2.5 bg-indigo-50/50 border border-indigo-100 rounded-xl outline-none text-indigo-700 font-bold cursor-not-allowed"
-                    placeholder="يحسب تلقائياً"
+                    placeholder={t('placeholder_calculated_automatically')}
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-slate-500 mb-2 uppercase">تاريخ بدء الخصم *</label>
+                  <label className="block text-xs font-bold text-slate-500 mb-2 uppercase">{t('deduction_start_date_label')}</label>
                   <input
                     type="date"
                     value={form.year_and_month_start_date}
                     onChange={e => setForm(f => ({ ...f, year_and_month_start_date: e.target.value }))}
                     className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none text-slate-700 font-bold focus:ring-2 focus:ring-indigo-500/20"
                   />
-                  <p className="text-[10px] text-slate-400 font-bold mt-1">مثال: 2024-06-01 ليكون الخصم من شهر 6</p>
+                  <p className="text-xs text-slate-400 font-bold mt-1">{t('deduction_start_date_note')}</p>
                 </div>
 
                 <div className="md:col-span-2">
@@ -551,8 +551,8 @@ export default function PermanentLoansPage() {
           <div className="bg-white rounded-3xl shadow-2xl w-full max-w-3xl overflow-hidden relative z-10 animate-scale-up flex flex-col max-h-[90vh]">
             <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50">
               <div>
-                <h3 className="text-lg font-black text-slate-800">أقساط السلفة</h3>
-                {activeLoan && <p className="text-xs font-bold text-slate-500 mt-1">للموظف: ({activeLoan.employee_code}) - إجمالي: {activeLoan.total}</p>}
+                <h3 className="text-lg font-black text-slate-800">{t('loan_installments')}</h3>
+                {activeLoan && <p className="text-xs font-bold text-slate-500 mt-1">{t('employee')}: ({activeLoan.employee_code}) - {t('stats_total_amounts')}: {activeLoan.total}</p>}
               </div>
               <button onClick={() => setShowInstModal(false)} className="p-2 rounded-xl hover:bg-slate-100 text-slate-500 transition-colors">
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
@@ -560,15 +560,15 @@ export default function PermanentLoansPage() {
             </div>
             <div className="p-6 overflow-y-auto">
               {loadingInst ? (
-                <div className="py-20 text-center text-slate-400 font-bold">جاري تحميل الأقساط...</div>
+                <div className="py-20 text-center text-slate-400 font-bold">{t('loading_installments')}</div>
               ) : (
                 <table className="w-full text-sm text-right">
                   <thead className="bg-slate-50 text-slate-700 uppercase border-b border-slate-100 rounded-xl">
                     <tr>
-                      <th className="px-5 py-4">شهر الاستحقاق</th>
-                      <th className="px-5 py-4">قيمة القسط</th>
-                      <th className="px-5 py-4">حالة الدفع</th>
-                      <th className="px-5 py-4">حالة الأرشفة</th>
+                      <th className="px-5 py-4">{t('due_month')}</th>
+                      <th className="px-5 py-4">{t('installment_value')}</th>
+                      <th className="px-5 py-4">{t('payment_status')}</th>
+                      <th className="px-5 py-4">{t('archive_status')}</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -584,16 +584,16 @@ export default function PermanentLoansPage() {
                           </td>
                           <td className="px-5 py-4">
                             {isPaid ? (
-                              <span className="px-2 py-1 rounded-lg text-xs font-bold bg-emerald-100 text-emerald-700">تم الخصم والدفع</span>
+                              <span className="px-2 py-1 rounded-lg text-xs font-bold bg-emerald-100 text-emerald-700">{t('deducted_and_paid')}</span>
                             ) : (
-                              <span className="px-2 py-1 rounded-lg text-xs font-bold bg-amber-100 text-amber-700">بانتظار الدفع</span>
+                              <span className="px-2 py-1 rounded-lg text-xs font-bold bg-amber-100 text-amber-700">{t('pending_payment')}</span>
                             )}
                           </td>
                           <td className="px-5 py-4">
                             {inst.is_archived == 1 ? (
-                              <span className="text-xs font-bold text-slate-500">مؤرشف</span>
+                              <span className="text-xs font-bold text-slate-500">{t('is_archived')}</span>
                             ) : (
-                              <span className="text-xs font-bold text-slate-500">مفتوح</span>
+                              <span className="text-xs font-bold text-slate-500">{t('open')}</span>
                             )}
                           </td>
                         </tr>

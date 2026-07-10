@@ -67,7 +67,7 @@ export default function SalaryRecordsPage() {
         if (result.active_year && !filterYear) setFilterYear(result.active_year);
       }
     } catch {
-      showToast('حدث خطأ في الاتصال', 'error');
+      showToast(t('conn_error'), 'error');
     } finally {
       setLoading(false);
     }
@@ -105,7 +105,7 @@ export default function SalaryRecordsPage() {
         });
       }
     } catch {
-      showToast('خطأ في جلب تواريخ البصمة', 'error');
+      showToast(t('fetch_fingerprint_dates_error'), 'error');
     } finally {
       setLoadingPasma(false);
     }
@@ -114,7 +114,7 @@ export default function SalaryRecordsPage() {
   const submitOpenMonth = async () => {
     if (!openMonthModal) return;
     if (!pasmaDates.start || !pasmaDates.end) {
-      showToast('يرجى تحديد تواريخ البصمة', 'error');
+      showToast(t('select_fingerprint_dates_error'), 'error');
       return;
     }
     try {
@@ -135,12 +135,12 @@ export default function SalaryRecordsPage() {
         showToast(result.message, 'error');
       }
     } catch {
-      showToast('حدث خطأ أثناء فتح الشهر', 'error');
+      showToast(t('open_month_error'), 'error');
     }
   };
 
   const handleCloseMonth = async (id: number) => {
-    if (!confirm('هل أنت متأكد من إغلاق وأرشفة هذا الشهر المالي بالكامل؟ لا يمكن التراجع عن هذه الخطوة.')) return;
+    if (!confirm(t('close_month_confirm'))) return;
     try {
       const res = await fetch(`${API}/salary-records/close-month/${id}`, { method: 'POST', headers });
       const result = await res.json();
@@ -151,7 +151,7 @@ export default function SalaryRecordsPage() {
         showToast(result.message, 'error');
       }
     } catch {
-      showToast('حدث خطأ في الاتصال', 'error');
+      showToast(t('conn_error'), 'error');
     }
   };
 
@@ -162,8 +162,8 @@ export default function SalaryRecordsPage() {
       {/* Header */}
       <div className="flex justify-between items-end mb-8">
         <div>
-          <h2 className="text-3xl font-black text-slate-800 tracking-tight">سجلات الرواتب</h2>
-          <p className="text-slate-500 mt-1 text-sm">إدارة سجلات رواتب الموظفين الشهرية لكل شهر مالي</p>
+          <h2 className="text-3xl font-black text-slate-800 tracking-tight">{t('salary_records_title')}</h2>
+          <p className="text-slate-500 mt-1 text-sm">{t('salary_records_desc')}</p>
         </div>
       </div>
 
@@ -171,7 +171,7 @@ export default function SalaryRecordsPage() {
       <div className="bg-white p-5 rounded-3xl shadow-sm border border-slate-100 mb-6">
         <div className="flex items-end gap-4 flex-wrap">
           <div>
-            <label className="block text-xs font-bold text-slate-500 mb-2 uppercase tracking-wider">السنة المالية</label>
+            <label className="block text-xs font-bold text-slate-500 mb-2 uppercase tracking-wider">{t('finance_year')}</label>
             <select
               value={filterYear}
               onChange={e => { setFilterYear(e.target.value); setPage(1); }}
@@ -192,13 +192,13 @@ export default function SalaryRecordsPage() {
           <table className="w-full text-sm text-right">
             <thead className="bg-slate-50 text-slate-700 border-b border-slate-100">
               <tr>
-                <th className="px-5 py-4 font-bold uppercase text-xs tracking-wider">اسم الشهر عربي</th>
-                <th className="px-5 py-4 font-bold uppercase text-xs tracking-wider">تاريخ البداية</th>
-                <th className="px-5 py-4 font-bold uppercase text-xs tracking-wider">تاريخ النهاية</th>
-                <th className="px-5 py-4 font-bold uppercase text-xs tracking-wider">بداية البصمة</th>
-                <th className="px-5 py-4 font-bold uppercase text-xs tracking-wider">نهاية البصمة</th>
-                <th className="px-5 py-4 font-bold uppercase text-xs tracking-wider">عدد الأيام</th>
-                <th className="px-5 py-4 font-bold uppercase text-xs tracking-wider">حالة الشهر</th>
+                <th className="px-5 py-4 font-bold uppercase text-xs tracking-wider">{t('month_name_ar')}</th>
+                <th className="px-5 py-4 font-bold uppercase text-xs tracking-wider">{t('start_date_label')}</th>
+                <th className="px-5 py-4 font-bold uppercase text-xs tracking-wider">{t('end_date_label')}</th>
+                <th className="px-5 py-4 font-bold uppercase text-xs tracking-wider">{t('start_fingerprint')}</th>
+                <th className="px-5 py-4 font-bold uppercase text-xs tracking-wider">{t('end_fingerprint')}</th>
+                <th className="px-5 py-4 font-bold uppercase text-xs tracking-wider">{t('days_number')}</th>
+                <th className="px-5 py-4 font-bold uppercase text-xs tracking-wider">{t('month_status')}</th>
               </tr>
             </thead>
             <tbody>
@@ -216,21 +216,21 @@ export default function SalaryRecordsPage() {
                       <div className="flex items-center gap-3">
                         {action === 'view' && (
                           <>
-                            <span className="font-bold text-emerald-600">مفتوح</span>
+                            <span className="font-bold text-emerald-600">{t('month_open')}</span>
                             <button onClick={() => handleCloseMonth(item.id)} className="px-3 py-1.5 bg-rose-100 text-rose-700 hover:bg-rose-200 rounded-lg transition-colors font-bold text-xs">{t('close')}</button>
                           </>
                         )}
                         {action === 'open' && (
                           <>
-                            <span className="font-bold text-slate-500">بانتظار الفتح</span>
-                            <button onClick={() => handleOpenMonthClick(item.id)} className="px-3 py-1.5 bg-violet-100 text-violet-700 hover:bg-violet-200 rounded-lg transition-colors font-bold text-xs">فتح</button>
+                            <span className="font-bold text-slate-500">{t('month_waiting_open')}</span>
+                            <button onClick={() => handleOpenMonthClick(item.id)} className="px-3 py-1.5 bg-violet-100 text-violet-700 hover:bg-violet-200 rounded-lg transition-colors font-bold text-xs">{t('open')}</button>
                           </>
                         )}
                         {action === 'archived' && (
-                          <span className="font-bold text-rose-600">مؤرشف</span>
+                          <span className="font-bold text-rose-600">{t('is_archived')}</span>
                         )}
                         {action === 'pending' && (
-                          <span className="font-bold text-slate-500">بانتظار الفتح</span>
+                          <span className="font-bold text-slate-500">{t('month_waiting_open')}</span>
                         )}
                       </div>
                     </td>
@@ -244,7 +244,7 @@ export default function SalaryRecordsPage() {
               <div className="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-4">
                 <svg className="w-10 h-10 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
               </div>
-              <p className="text-slate-500 font-bold">لا توجد أشهر مالية مفتوحة أو مغلقة</p>
+              <p className="text-slate-500 font-bold">{t('no_months_found')}</p>
             </div>
           )}
         </div>
@@ -253,7 +253,7 @@ export default function SalaryRecordsPage() {
         {pagination && pagination.last_page > 1 && (
           <div className="p-6 border-t border-slate-100 flex items-center justify-between">
             <p className="text-sm text-slate-500">
-              عرض {data.length} من أصل {pagination.total} سجل
+              {t('showing')} {data.length} {t('of')} {pagination.total} {pagination.total === 1 ? t('record') : t('records')}
             </p>
             <div className="flex items-center gap-1">
               <button
@@ -288,7 +288,7 @@ export default function SalaryRecordsPage() {
         <div className="fixed inset-0 z-[999] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-fade-in" style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0 }}>
           <div className="bg-white rounded-3xl shadow-xl w-full max-w-md overflow-hidden relative z-[1000]">
             <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50">
-              <h3 className="text-xl font-black text-slate-800">فتح الشهر المالي</h3>
+              <h3 className="text-xl font-black text-slate-800">{t('open_month_title')}</h3>
               <button onClick={() => setOpenMonthModal(null)} className="text-slate-400 hover:text-slate-600 transition-colors">
                 <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -304,7 +304,7 @@ export default function SalaryRecordsPage() {
               ) : (
                 <div className="space-y-4">
                   <div>
-                    <label className="block text-sm font-bold text-slate-700 mb-2">تاريخ بداية البصمة</label>
+                    <label className="block text-sm font-bold text-slate-700 mb-2">{t('start_fingerprint_date')}</label>
                     <input
                       type="date"
                       value={pasmaDates.start}
@@ -313,7 +313,7 @@ export default function SalaryRecordsPage() {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-bold text-slate-700 mb-2">تاريخ نهاية البصمة</label>
+                    <label className="block text-sm font-bold text-slate-700 mb-2">{t('end_fingerprint_date')}</label>
                     <input
                       type="date"
                       value={pasmaDates.end}
@@ -331,7 +331,7 @@ export default function SalaryRecordsPage() {
                 disabled={loadingPasma || !pasmaDates.start || !pasmaDates.end}
                 className="flex-1 bg-violet-600 text-white py-3 rounded-xl font-bold hover:bg-violet-700 transition-colors disabled:opacity-50"
               >
-                تأكيد فتح الشهر
+                {t('open_month_btn')}
               </button>
               <button
                 onClick={() => setOpenMonthModal(null)}

@@ -67,14 +67,14 @@ export default function PermanentLoansPrintPage() {
   if (loading) return <LoadingScreen />;
 
   return (
-    <div className="bg-white min-h-screen p-8 text-black" dir="rtl">
+    <div className="bg-white min-h-screen p-8 text-black" dir={t('dir') || 'rtl'}>
       {/* Print Header */}
       <div className="flex justify-between items-center border-b-2 border-black pb-4 mb-6">
         {/* Right Section: Company Info & Report Name */}
         <div className="text-right w-1/3">
-          <h1 className="text-2xl font-black text-black">{settings?.company_name || 'نظام إدارة الموارد البشرية'}</h1>
+          <h1 className="text-2xl font-black text-black">{settings?.company_name || t('hrms_title')}</h1>
           {settings?.address && <p className="text-sm font-bold text-gray-600 mt-1">{settings.address}</p>}
-          <h2 className="text-xl font-bold mt-2">كشف السلف المستدامة للموظفين</h2>
+          <h2 className="text-xl font-bold mt-2">{t('permanent_loans_report')}</h2>
         </div>
 
         {/* Center Section: Company Logo */}
@@ -90,8 +90,8 @@ export default function PermanentLoansPrintPage() {
 
         {/* Left Section: Print Info & Finance Month */}
         <div className="text-left w-1/3">
-          <p className="text-sm font-bold">تاريخ الطباعة: {new Date().toLocaleDateString('ar-EG')}</p>
-          <p className="text-sm font-bold mt-1 mb-2">وقت الطباعة: {new Date().toLocaleTimeString('ar-EG')}</p>
+          <p className="text-sm font-bold">{t('print_date')}: {new Date().toLocaleDateString('ar-EG')}</p>
+          <p className="text-sm font-bold mt-1 mb-2">{t('print_time')}: {new Date().toLocaleTimeString('ar-EG')}</p>
         </div>
       </div>
 
@@ -99,13 +99,13 @@ export default function PermanentLoansPrintPage() {
       <table className="w-full text-sm border-collapse border border-black text-center">
         <thead>
           <tr className="bg-gray-100">
-            <th className="border border-black p-2 font-bold">م</th>
+            <th className="border border-black p-2 font-bold">{t('seq_number')}</th>
             <th className="border border-black p-2 font-bold">{t('employee_name')}</th>
-            <th className="border border-black p-2 font-bold">القيمة الإجمالية</th>
-            <th className="border border-black p-2 font-bold">القسط الشهري</th>
-            <th className="border border-black p-2 font-bold">المدفوع</th>
-            <th className="border border-black p-2 font-bold">المتبقي</th>
-            <th className="border border-black p-2 font-bold">الحالة</th>
+            <th className="border border-black p-2 font-bold">{t('total_amount')}</th>
+            <th className="border border-black p-2 font-bold">{t('monthly_installment')}</th>
+            <th className="border border-black p-2 font-bold">{t('paid_amount')}</th>
+            <th className="border border-black p-2 font-bold">{t('remaining_amount')}</th>
+            <th className="border border-black p-2 font-bold">{t('status')}</th>
           </tr>
         </thead>
         <tbody>
@@ -115,20 +115,20 @@ export default function PermanentLoansPrintPage() {
               <tr key={item.id}>
                 <td className="border border-black p-2">{index + 1}</td>
                 <td className="border border-black p-2 font-bold">
-                <span className="text-gray-500 ml-1">({item.employee_code})</span>
-                {item.employee?.emp_name || ''}
-              </td>
+                  <span className="text-gray-500 ml-1">({item.employee_code})</span>
+                  {item.employee?.emp_name || ''}
+                </td>
                 <td className="border border-black p-2">{parseFloat(String(item.total)).toFixed(2)} {t('currency')}</td>
                 <td className="border border-black p-2">{parseFloat(String(item.installment_value)).toFixed(2)} {t('currency')}</td>
                 <td className="border border-black p-2">{parseFloat(String(item.paid_amount || 0)).toFixed(2)} {t('currency')}</td>
                 <td className="border border-black p-2">{parseFloat(String(item.remaining_amount || item.total)).toFixed(2)} {t('currency')}</td>
-                <td className="border border-black p-2">{isDismissed ? 'منتهية' : 'مستمرة'}</td>
+                <td className="border border-black p-2">{isDismissed ? t('ended') : t('active_loan')}</td>
               </tr>
             );
           })}
           {data.length === 0 && (
             <tr>
-              <td colSpan={8} className="border border-black p-4 text-center">لا توجد سلف مستدامة</td>
+              <td colSpan={8} className="border border-black p-4 text-center">{t('no_permanent_loans_found')}</td>
             </tr>
           )}
         </tbody>
@@ -137,15 +137,15 @@ export default function PermanentLoansPrintPage() {
       {/* Print Footer */}
       <div className="mt-16 flex justify-between px-10">
         <div className="text-center">
-          <p className="font-bold mb-8">توقيع المحاسب</p>
+          <p className="font-bold mb-8">{t('financial_officer_accountant')}</p>
           <p>........................</p>
         </div>
         <div className="text-center">
-          <p className="font-bold mb-8">توقيع مدير الموارد البشرية</p>
+          <p className="font-bold mb-8">{t('hr_manager')}</p>
           <p>........................</p>
         </div>
         <div className="text-center">
-          <p className="font-bold mb-8">الاعتماد</p>
+          <p className="font-bold mb-8">{t('general_manager')}</p>
           <p>........................</p>
         </div>
       </div>
