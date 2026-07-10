@@ -53,6 +53,7 @@ export default function Sidebar() {
                 pathname?.includes('/admin/blood-groups') || 
                 pathname?.includes('/admin/countries') || 
                 pathname?.includes('/admin/governorates') || 
+                pathname?.includes('/admin/languages') || 
                 pathname?.includes('/admin/centers'));
     }
     return false;
@@ -175,6 +176,10 @@ export default function Sidebar() {
               <Link href="/admin/centers" className={`flex items-center px-4 py-2.5 text-sm rounded-xl transition-all duration-300 ${isActive('/admin/centers') ? 'text-white bg-indigo-500/10 font-bold' : 'text-slate-400 hover:text-white hover:bg-slate-800/50 hover:translate-x-1'}`}>
                 <div className={`w-1.5 h-1.5 rounded-full mx-2 transition-colors ${isActive('/admin/centers') ? 'bg-indigo-500 shadow-[0_0_8px_rgba(99,102,241,0.8)]' : 'bg-slate-600'}`}></div>
                 {t('centers')}
+              </Link>
+              <Link href="/admin/languages" className={`flex items-center px-4 py-2.5 text-sm rounded-xl transition-all duration-300 ${isActive('/admin/languages') ? 'text-white bg-indigo-500/10 font-bold' : 'text-slate-400 hover:text-white hover:bg-slate-800/50 hover:translate-x-1'}`}>
+                <div className={`w-1.5 h-1.5 rounded-full mx-2 transition-colors ${isActive('/admin/languages') ? 'bg-indigo-500 shadow-[0_0_8px_rgba(99,102,241,0.8)]' : 'bg-slate-600'}`}></div>
+                {t('languages')}
               </Link>
             </div>
           </div>

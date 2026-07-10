@@ -388,6 +388,14 @@ export const translations = {
     edit_center: "تعديل مدينة",
     delete_center: "حذف مدينة",
 
+    // Languages
+    languages: "اللغات",
+    language: "اللغة",
+    language_name: "اسم اللغة",
+    add_language: "إضافة لغة",
+    edit_language: "تعديل لغة",
+    delete_language: "حذف لغة",
+
     // ── سجلات الرواتب ─────────────────────────────────────────
     salary_records: "سجلات الرواتب",
     add_salary_record: "إضافة سجل راتب",
@@ -1060,6 +1068,14 @@ export const translations = {
     add_center: "Add City/Center",
     edit_center: "Edit City/Center",
     delete_center: "Delete City/Center",
+
+    // Languages
+    languages: "Languages",
+    language: "Language",
+    language_name: "Language Name",
+    add_language: "Add Language",
+    edit_language: "Edit Language",
+    delete_language: "Delete Language",
 
     // ── Salary Records ────────────────────────────────────────
     salary_records: "Salary Records",
