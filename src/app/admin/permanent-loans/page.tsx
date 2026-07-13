@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import Link from 'next/link';
 import LoadingScreen from '@/components/ui/LoadingScreen';
@@ -19,7 +19,7 @@ interface PermanentLoan {
   year_and_month_start_date: string;
   notes?: string;
   is_archived: number;
-  is_dismissal: number;
+  is_disbursed: number;
   created_at: string;
   employee?: Employee;
   added?: { name: string };
@@ -36,6 +36,8 @@ interface Installment {
   created_at: string;
   added?: { name: string };
   status?: number;
+  counterbefornotpaid?: number;
+  is_parent_disbursed?: number;
   monthly_installment_value?: number | string;
 }
 
@@ -114,7 +116,7 @@ export default function PermanentLoansPage() {
 
   const openEditModal = (a: PermanentLoan) => {
     if (a.is_archived == 1) { showToast(t('loan_already_archived'), 'error'); return; }
-    if (a.is_dismissal == 1) { showToast(t('cannot_edit_dismissed'), 'error'); return; }
+    if (a.is_disbursed == 1) { showToast(t('cannot_edit_disbursed'), 'error'); return; }
     setEditingId(a.id);
     setForm({
       employee_code: a.employee_code,
@@ -135,7 +137,7 @@ export default function PermanentLoansPage() {
     }
 
     if (!editingId) {
-      const exists = loans.some((a: PermanentLoan) => String(a.employee_code) === String(form.employee_code) && a.is_dismissal == 0);
+      const exists = loans.some((a: PermanentLoan) => String(a.employee_code) === String(form.employee_code) && a.is_disbursed == 0);
       if (exists) {
         const ok = await confirm({ title: t('warning'), description: t('confirm_duplicate_permanent_loan'), icon: 'warning' });
         if (!ok) return;
@@ -164,7 +166,7 @@ export default function PermanentLoansPage() {
 
   const handleDelete = async (a: PermanentLoan) => {
     if (a.is_archived == 1) { showToast(t('loan_already_archived'), 'error'); return; }
-    if (a.is_dismissal == 1) { showToast(t('cannot_delete_dismissed'), 'error'); return; }
+    if (a.is_disbursed == 1) { showToast(t('cannot_delete_disbursed'), 'error'); return; }
     const ok = await confirm({ title: t('confirm_delete'), description: t('confirm_delete_permanent_loan'), icon: 'danger' });
     if (!ok) return;
     try {
@@ -177,16 +179,44 @@ export default function PermanentLoansPage() {
     }
   };
 
-  const handleDismiss = async (a: PermanentLoan) => {
+  const handleDisburse = async (a: PermanentLoan) => {
     if (a.is_archived == 1) { showToast(t('loan_already_archived'), 'error'); return; }
-    if (a.is_dismissal == 1) { showToast(t('loan_already_dismissed'), 'error'); return; }
-    const ok = await confirm({ title: t('confirm_dismissal_title'), description: t('confirm_dismissal_desc'), icon: 'warning' });
+    if (a.is_disbursed == 1) { showToast(t('loan_already_disbursed'), 'error'); return; }
+    const ok = await confirm({ title: t('confirm_disbursement_title'), description: t('confirm_disbursement_desc'), icon: 'warning' });
     if (!ok) return;
     try {
-      const res = await fetch(`${API}/permanent-loans/${a.id}/dismiss`, { method: 'POST', headers: headers() });
+      const res = await fetch(`${API}/permanent-loans/${a.id}/disburse`, { method: 'POST', headers: headers() });
       const result = await res.json();
-      if (result.status) { showToast(t('loan_dismissed_success'), 'success'); fetchData(); }
+      if (result.status) { showToast(t('loan_disbursed_success'), 'success'); fetchData(); }
       else showToast(result.message, 'error');
+    } catch {
+      showToast(t('conn_error'), 'error');
+    }
+  };
+
+  const handlePayCash = async (installmentId: number) => {
+    const ok = await confirm({
+      title: t('pay_cash'),
+      description: t('confirm_pay_cash'),
+      icon: 'warning'
+    });
+    if (!ok) return;
+
+    try {
+      const res = await fetch(`${API}/permanent-loans/installments/${installmentId}/pay-cash`, {
+        method: 'POST',
+        headers: headers()
+      });
+      const result = await res.json();
+      if (result.status) {
+        showToast(result.message, 'success');
+        if (activeLoan) {
+          openInstallments(activeLoan);
+        }
+        fetchData();
+      } else {
+        showToast(result.message, 'error');
+      }
     } catch {
       showToast(t('conn_error'), 'error');
     }
@@ -210,6 +240,14 @@ export default function PermanentLoansPage() {
       setLoadingInst(false);
     }
   };
+
+  // this function to show counter of installments before not paid ()
+  const computedInstallments = useMemo(() => {
+    return installments.map((inst: Installment) => ({
+      ...inst,
+      counterbefornotpaid: installments.filter((i: Installment) => i.id < inst.id && i.status == 0 && i.is_archived == 0).length,
+    }));
+  }, [installments]);
 
   const handleEmployeeChange = (code: string) => {
     const emp = employees.find((e: Employee) => e.employee_code == code);
@@ -237,9 +275,9 @@ export default function PermanentLoansPage() {
     const empCode = a.employee_code?.toString() || '';
     const notes = a.notes?.toLowerCase() || '';
     const total = a.total?.toString() || '';
-    const isDismissal = a.is_dismissal == 1 ? 'تم الصرف' : 'انتظار';
+    const isDisbursed = a.is_disbursed == 1 ? 'تم الصرف' : 'انتظار';
     const isArchived = a.is_archived == 1 ? 'مؤرشف' : 'مفتوح';
-    return empName.includes(query) || empCode.includes(query) || notes.includes(query) || total.includes(query) || isDismissal.includes(query) || isArchived.includes(query);
+    return empName.includes(query) || empCode.includes(query) || notes.includes(query) || total.includes(query) || isDisbursed.includes(query) || isArchived.includes(query);
   });
 
   const totalAmount = filteredLoans.reduce((s: number, a: PermanentLoan) => s + parseFloat(String(a.total || 0)), 0);
@@ -326,7 +364,7 @@ export default function PermanentLoansPage() {
                 <th className="px-5 py-4">{t('loan_amount')}</th>
                 <th className="px-5 py-4">{t('months_count')}</th>
                 <th className="px-5 py-4">{t('monthly_installment')}</th>
-                <th className="px-5 py-4">{t('dismissal_status')}</th>
+                <th className="px-5 py-4">{t('disbursement_status')}</th>
                 <th className="px-5 py-4">{t('is_ended')}</th>
                 <th className="px-5 py-4 text-center">{t('actions')}</th>
               </tr>
@@ -334,8 +372,8 @@ export default function PermanentLoansPage() {
             <tbody>
               {filteredLoans.map((a: PermanentLoan) => {
                 const isArchived = a.is_archived == 1;
-                const isDismissed = a.is_dismissal == 1;
-                const canAct = !isArchived && !isDismissed;
+                const isDisbursed = a.is_disbursed == 1;
+                const canAct = !isArchived && !isDisbursed;
                 const emp = employees.find((e: Employee) => String(e.employee_code) === String(a.employee_code));
                 const empName = a.employee?.emp_name || emp?.emp_name || a.employee_code;
 
@@ -369,15 +407,15 @@ export default function PermanentLoansPage() {
                       {parseFloat(String(a.monthly_installment_value)).toFixed(2)}
                     </td>
                     <td className="px-5 py-4">
-                      {isDismissed ? (
+                      {isDisbursed ? (
                         <span className="px-2 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-700 flex items-center gap-1 w-max">
                           <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>
-                          {t('dismissed')}
+                          {t('disbursed')}
                         </span>
                       ) : (
                         <span className="px-2 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-700 flex items-center gap-1 w-max">
                           <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                          {t('pending_dismissal')}
+                          {t('pending_disbursement')}
                         </span>
                       )}
                     </td>
@@ -398,7 +436,7 @@ export default function PermanentLoansPage() {
                       <div className="flex items-center justify-center gap-2">
                         {canAct && (
                           <button
-                            onClick={() => handleDismiss(a)}
+                            onClick={() => handleDisburse(a)}
                             className="text-xs font-bold bg-indigo-50 text-indigo-700 px-3 py-1.5 rounded-lg hover:bg-indigo-600 hover:text-white transition-colors border border-indigo-200 hover:border-transparent flex items-center gap-1"
                           >
                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
@@ -548,7 +586,7 @@ export default function PermanentLoansPage() {
       {showInstModal && createPortal(
         <div className="fixed inset-0 z-[999999] flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-slate-900/80 backdrop-blur-sm" onClick={() => setShowInstModal(false)}></div>
-          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-3xl overflow-hidden relative z-10 animate-scale-up flex flex-col max-h-[90vh]">
+          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-5xl overflow-hidden relative z-10 animate-scale-up flex flex-col max-h-[90vh]">
             <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50">
               <div>
                 <h3 className="text-lg font-black text-slate-800">{t('loan_installments')}</h3>
@@ -569,10 +607,11 @@ export default function PermanentLoansPage() {
                       <th className="px-5 py-4">{t('installment_value')}</th>
                       <th className="px-5 py-4">{t('payment_status')}</th>
                       <th className="px-5 py-4">{t('archive_status')}</th>
+                      <th className="px-5 py-4 text-center">{t('actions')}</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {installments.map((inst: Installment) => {
+                    {computedInstallments.map((inst: Installment) => {
                       const isPaid = inst.status == 1; // 1: مدفوع
                       return (
                         <tr key={inst.id} className="border-b border-slate-50 hover:bg-slate-50/50 transition-colors">
@@ -583,8 +622,10 @@ export default function PermanentLoansPage() {
                             {parseFloat(String(inst.monthly_installment_value || 0)).toFixed(2)}
                           </td>
                           <td className="px-5 py-4">
-                            {isPaid ? (
+                            {inst.status == 1 ? (
                               <span className="px-2 py-1 rounded-lg text-xs font-bold bg-emerald-100 text-emerald-700">{t('deducted_and_paid')}</span>
+                            ) : inst.status == 2 ? (
+                              <span className="px-2 py-1 rounded-lg text-xs font-bold bg-blue-100 text-blue-700">{t('paid_cash')}</span>
                             ) : (
                               <span className="px-2 py-1 rounded-lg text-xs font-bold bg-amber-100 text-amber-700">{t('pending_payment')}</span>
                             )}
@@ -594,6 +635,16 @@ export default function PermanentLoansPage() {
                               <span className="text-xs font-bold text-slate-500">{t('is_archived')}</span>
                             ) : (
                               <span className="text-xs font-bold text-slate-500">{t('open')}</span>
+                            )}
+                          </td>
+                          <td className="px-5 py-4 text-center">
+                            {inst.status == 0 && inst.is_archived == 0 && activeLoan?.is_disbursed == 1 && inst.counterbefornotpaid == 0 && (
+                              <button
+                                onClick={() => handlePayCash(inst.id)}
+                                className="text-xs font-bold bg-blue-50 text-blue-700 px-3 py-1.5 rounded-lg hover:bg-blue-600 hover:text-white transition-colors border border-blue-200 hover:border-transparent"
+                              >
+                                {t('pay_cash')}
+                              </button>
                             )}
                           </td>
                         </tr>

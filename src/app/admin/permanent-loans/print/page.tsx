@@ -13,7 +13,7 @@ interface PermanentLoanPrintItem {
   installment_value: string | number;
   paid_amount?: string | number;
   remaining_amount?: string | number;
-  is_dismissed?: number;
+  is_disbursed?: number;
   is_archived?: number;
   employee?: {
     emp_name: string;
@@ -31,10 +31,10 @@ export default function PermanentLoansPrintPage() {
       try {
         const token = localStorage.getItem('admin_token');
         const headers = { 'Authorization': `Bearer ${token}`, 'Accept': 'application/json' };
-        
+
         const res = await fetch(`${API}/permanent-loans`, { headers });
         const result = await res.json();
-        
+
         const setRes = await fetch(`${API}/generalSettings`, { headers });
         const setResult = await setRes.json();
         if (setResult.status) {
@@ -110,7 +110,7 @@ export default function PermanentLoansPrintPage() {
         </thead>
         <tbody>
           {data.map((item, index) => {
-            const isDismissed = item.is_dismissed == 1 || item.is_archived == 1;
+            const isDisbursed = item.is_disbursed == 1 || item.is_archived == 1;
             return (
               <tr key={item.id}>
                 <td className="border border-black p-2">{index + 1}</td>
@@ -122,7 +122,7 @@ export default function PermanentLoansPrintPage() {
                 <td className="border border-black p-2">{parseFloat(String(item.installment_value)).toFixed(2)} {t('currency')}</td>
                 <td className="border border-black p-2">{parseFloat(String(item.paid_amount || 0)).toFixed(2)} {t('currency')}</td>
                 <td className="border border-black p-2">{parseFloat(String(item.remaining_amount || item.total)).toFixed(2)} {t('currency')}</td>
-                <td className="border border-black p-2">{isDismissed ? t('ended') : t('active_loan')}</td>
+                <td className="border border-black p-2">{isDisbursed ? t('ended') : t('active_loan')}</td>
               </tr>
             );
           })}

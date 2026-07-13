@@ -8,6 +8,7 @@ import LoadingScreen from '@/components/ui/LoadingScreen';
 import { useToast } from '@/contexts/ToastContext';
 import { useConfirm } from '@/contexts/ConfirmContext';
 import { FinanceMonth, Employee } from '@/types';
+import { createPortal } from 'react-dom';
 
 interface EmployeeSalaryItem {
   id: number;
@@ -341,8 +342,9 @@ export default function SalaryRecordsDetailPage() {
       </div>
 
       {/* Add Salary Modal */}
-      {showAddModal && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+      {showAddModal && createPortal(
+        <div className="fixed inset-0 z-[999999] flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onClick={() => setShowAddModal(false)}></div>
           <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md animate-fade-in-up">
             <div className="p-6 border-b border-slate-100 flex justify-between items-center">
               <h3 className="text-lg font-black text-slate-800">{t('add_salary_record')}</h3>
@@ -377,7 +379,8 @@ export default function SalaryRecordsDetailPage() {
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );
