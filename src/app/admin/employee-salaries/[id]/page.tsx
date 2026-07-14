@@ -33,7 +33,7 @@ const MONTHS_AR: Record<number, string> = {
 };
 
 export default function SalaryRecordsDetailPage() {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const { showToast } = useToast();
   const { confirm } = useConfirm();
   const params = useParams();
@@ -47,6 +47,7 @@ export default function SalaryRecordsDetailPage() {
   const [nothavesal, setNothavesal] = useState(0);
   const [isMonthOpen, setIsMonthOpen] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [showPrintDropdown, setShowPrintDropdown] = useState(false);
 
   // Add salary modal
   const [showAddModal, setShowAddModal] = useState(false);
@@ -202,16 +203,72 @@ export default function SalaryRecordsDetailPage() {
             </div>
           )}
         </div>
-        {isMonthOpen && nothavesal > 0 && (
-          <button
-            onClick={() => setShowAddModal(true)}
-            className="bg-gradient-to-r from-violet-500 to-purple-600 text-white px-6 py-2.5 rounded-xl hover:shadow-lg hover:shadow-violet-500/30 hover:-translate-y-0.5 transition-all duration-300 font-bold flex items-center gap-2"
-          >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
-            {t('add_salary_record')}
-            <span className="bg-white/20 text-white px-2 py-0.5 rounded-lg text-xs">{nothavesal}</span>
-          </button>
-        )}
+        <div className="flex items-center gap-3 flex-wrap">
+          {/* Print Reports Dropdown */}
+          <div className="relative inline-block text-right">
+            <button
+              onClick={() => setShowPrintDropdown(!showPrintDropdown)}
+              className="bg-white border border-slate-200 text-slate-700 px-6 py-2.5 rounded-xl hover:bg-slate-50 transition-all font-bold flex items-center gap-2 shadow-sm focus:outline-none"
+            >
+              <svg className="w-5 h-5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+              </svg>
+              {language === 'ar' ? 'طباعة التقارير' : 'Print Reports'}
+              <svg className="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
+            </button>
+
+            {showPrintDropdown && (
+              <>
+                {/* Backdrop overlay to close dropdown on click outside */}
+                <div className="fixed inset-0 z-40" onClick={() => setShowPrintDropdown(false)}></div>
+                <div className={`absolute z-50 mt-2 w-80 rounded-2xl bg-white shadow-xl border border-slate-100 py-2 focus:outline-none ${
+                  language === 'ar' ? 'left-0 origin-top-left' : 'right-0 origin-top-right'
+                }`}>
+                  <Link
+                    href={`/admin/employee-salaries/print-detailed-table/${monthId}`}
+                    target="_blank"
+                    onClick={() => setShowPrintDropdown(false)}
+                    className="flex items-center gap-3 px-4 py-3 text-sm text-slate-700 hover:bg-slate-50 transition-colors font-bold"
+                  >
+                    <span className="w-2.5 h-2.5 rounded-full bg-violet-500"></span>
+                    <span>{language === 'ar' ? 'كشف رواتب تفصيلي (جدول كامل)' : 'Detailed Salaries (Full Table)'}</span>
+                  </Link>
+                  <Link
+                    href={`/admin/employee-salaries/print-summary-table/${monthId}`}
+                    target="_blank"
+                    onClick={() => setShowPrintDropdown(false)}
+                    className="flex items-center gap-3 px-4 py-3 text-sm text-slate-700 hover:bg-slate-50 transition-colors font-bold border-t border-slate-50"
+                  >
+                    <span className="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
+                    <span>{language === 'ar' ? 'كشف رواتب مختصر (جدول مجمل)' : 'Summarized Salaries (Brief Table)'}</span>
+                  </Link>
+                  <Link
+                    href={`/admin/employee-salaries/print-individual-slips/${monthId}`}
+                    target="_blank"
+                    onClick={() => setShowPrintDropdown(false)}
+                    className="flex items-center gap-3 px-4 py-3 text-sm text-slate-700 hover:bg-slate-50 transition-colors font-bold border-t border-slate-50"
+                  >
+                    <span className="w-2.5 h-2.5 rounded-full bg-blue-500"></span>
+                    <span>{language === 'ar' ? 'مسيرات الرواتب (صفحة لكل موظف)' : 'Individual Payslips (Page per Employee)'}</span>
+                  </Link>
+                </div>
+              </>
+            )}
+          </div>
+
+          {isMonthOpen && nothavesal > 0 && (
+            <button
+              onClick={() => setShowAddModal(true)}
+              className="bg-gradient-to-r from-violet-500 to-purple-600 text-white px-6 py-2.5 rounded-xl hover:shadow-lg hover:shadow-violet-500/30 hover:-translate-y-0.5 transition-all duration-300 font-bold flex items-center gap-2"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
+              {t('add_salary_record')}
+              <span className="bg-white/20 text-white px-2 py-0.5 rounded-lg text-xs">{nothavesal}</span>
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Stats */}

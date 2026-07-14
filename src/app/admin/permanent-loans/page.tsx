@@ -612,7 +612,6 @@ export default function PermanentLoansPage() {
                   </thead>
                   <tbody>
                     {computedInstallments.map((inst: Installment) => {
-                      const isPaid = inst.status == 1; // 1: مدفوع
                       return (
                         <tr key={inst.id} className="border-b border-slate-50 hover:bg-slate-50/50 transition-colors">
                           <td className="px-5 py-4 font-black text-slate-800">
