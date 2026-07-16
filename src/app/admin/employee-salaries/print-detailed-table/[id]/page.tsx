@@ -165,7 +165,7 @@ export default function PrintDetailedTablePage() {
                 <th rowSpan={2} className="border border-slate-300 px-1 py-2 text-center font-black bg-rose-100 text-rose-900 print:bg-slate-100 print:text-black">{language === 'ar' ? 'إجمالي الاستقطاعات' : 'Total Deductions'}</th>
                 <th rowSpan={2} className="border border-slate-300 px-2 py-2 text-center font-black bg-indigo-900 text-white print:bg-slate-200 print:text-black">{language === 'ar' ? 'الرصيد المرحل' : 'Last Salary'}</th>
                 <th rowSpan={2} className="border border-slate-300 px-2 py-2 text-center font-black bg-indigo-900 text-white print:bg-slate-200 print:text-black">{language === 'ar' ? 'صافي الراتب' : 'Net Salary'}</th>
-                <th rowSpan={2} className="border border-slate-300 px-2 py-2 text-center font-black print:w-20">{language === 'ar' ? 'التوقيع' : 'Signature'}</th>
+                {/* <th rowSpan={2} className="border border-slate-300 px-2 py-2 text-center font-black print:w-20">{language === 'ar' ? 'التوقيع' : 'Signature'}</th> */}
               </tr>
               <tr className="bg-slate-50 text-slate-700 border-b border-slate-300">
                 <th className="border border-slate-300 px-1 py-1 text-center font-bold bg-emerald-50/50">{language === 'ar' ? 'حافز' : 'Motiv.'}</th>
@@ -176,7 +176,7 @@ export default function PrintDetailedTablePage() {
                 
                 <th className="border border-slate-300 px-1 py-1 text-center font-bold bg-rose-50/50">{language === 'ar' ? 'تأمين إجتماعي' : 'Social Ins'}</th>
                 <th className="border border-slate-300 px-1 py-1 text-center font-bold bg-rose-50/50">{language === 'ar' ? 'تأمين طبي' : 'Medical Ins'}</th>
-                <th className="border border-slate-300 px-1 py-1 text-center font-bold bg-rose-50/50">{language === 'ar' ? 'غياب' : 'Absence'}</th>
+                <th colSpan={2} className="border border-slate-300 px-1 py-1 text-center font-bold bg-rose-50/50">{language === 'ar' ? 'غياب' : 'Absence'}</th>
                 <th colSpan={2} className="border border-slate-300 px-1 py-1 text-center font-bold bg-rose-50/50">{language === 'ar' ? 'جزاءات' : 'Sanc.'}</th>
                 <th className="border border-slate-300 px-1 py-1 text-center font-bold bg-rose-50/50">{language === 'ar' ? 'خصم مالي' : 'Discount'}</th>
                 <th className="border border-slate-300 px-1 py-1 text-center font-bold bg-rose-50/50">{language === 'ar' ? 'سلفة شهرية' : 'Mo Loan'}</th>
@@ -216,7 +216,7 @@ export default function PrintDetailedTablePage() {
                   
                   <td className="border border-slate-300 px-2 py-1.5 font-black bg-slate-100 text-indigo-900 print:text-black print:bg-transparent">{parseFloat(String(row.last_salary_remain_balance || 0)).toFixed(2)}</td>
                   <td className="border border-slate-300 px-2 py-1.5 font-black bg-slate-100 text-indigo-900 print:text-black print:bg-transparent">{parseFloat(String(row.final_the_net || 0)).toFixed(2)}</td>
-                  <td className="border border-slate-300 px-2 py-1.5 text-center text-[10px] text-slate-400 font-bold print:w-24"></td>
+                  {/* <td className="border border-slate-300 px-2 py-1.5 text-center text-[10px] text-slate-400 font-bold print:w-24"></td> */}
                 </tr>
               ))}
               {/* Grand Total Row */}
@@ -242,7 +242,7 @@ export default function PrintDetailedTablePage() {
                 <td className="border border-slate-300 px-1 py-2 bg-rose-100 text-rose-950 print:text-black print:bg-transparent">{sumDeductions.toFixed(2)}</td>
                 <td className="border border-slate-300 px-2 py-2"></td>
                 <td className="border border-slate-300 px-2 py-2 bg-indigo-200 text-indigo-950 print:text-black print:bg-transparent">{sumNet.toFixed(2)}</td>
-                <td className="border border-slate-300 bg-black px-2 py-2"></td>
+                {/* <td className="border border-slate-300 bg-black px-2 py-2"></td> */}
               </tr>
             </tbody>
           </table>

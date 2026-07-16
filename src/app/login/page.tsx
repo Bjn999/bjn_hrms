@@ -11,7 +11,7 @@ export default function LoginPage() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const router = useRouter();
-  const { t } = useLanguage();
+  const { language, t } = useLanguage();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -45,13 +45,23 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-700 via-blue-600 to-cyan-500 py-12 px-4 sm:px-6 lg:px-8 relative overflow-hidden" dir="rtl">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-700 via-blue-600 to-cyan-500 py-12 px-4 sm:px-6 lg:px-8 relative overflow-hidden" dir={language === 'ar' ? 'rtl' : 'ltr'}>
       {/* Abstract Background Shapes */}
       <div className="absolute top-0 left-0 w-96 h-96 bg-white/20 rounded-full mix-blend-overlay filter blur-3xl opacity-70 animate-pulse"></div>
       <div className="absolute top-0 right-0 w-96 h-96 bg-cyan-300/20 rounded-full mix-blend-overlay filter blur-3xl opacity-70 animate-pulse" style={{ animationDelay: '2s' }}></div>
       <div className="absolute -bottom-8 left-20 w-96 h-96 bg-sky-300/20 rounded-full mix-blend-overlay filter blur-3xl opacity-70 animate-pulse" style={{ animationDelay: '4s' }}></div>
 
       <div className="max-w-md w-full space-y-8 bg-white/10 backdrop-blur-xl border border-white/20 p-10 rounded-3xl shadow-2xl z-10 relative">
+        <button
+          type="button"
+          onClick={() => router.push('/')}
+          className="absolute -top-12 start-0 flex items-center justify-center w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 border border-white/20 text-white backdrop-blur-md transition-all duration-300 shadow-lg hover:shadow-xl active:scale-95 cursor-pointer group z-20"
+          title={t('back_to_landing')}
+        >
+          <svg className={`w-5 h-5 transform transition-transform ${language === 'ar' ? 'rotate-180 group-hover:translate-x-0.5' : 'group-hover:-translate-x-0.5'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" />
+          </svg>
+        </button>
         <div>
           <div className="w-20 h-20 bg-white/20 rounded-2xl mx-auto flex items-center justify-center backdrop-blur-md shadow-inner border border-white/30">
             <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">

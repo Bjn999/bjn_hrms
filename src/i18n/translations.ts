@@ -76,6 +76,7 @@ export const translations = {
     password_placeholder: "أدخل كلمة المرور",
     login_btn: "دخول",
     login_loading: "جاري التحقق...",
+    back_to_landing: "العودة لصفحة الهبوط",
 
     // Sidebar
     hrms: "HRMS",
@@ -784,6 +785,7 @@ export const translations = {
     password_placeholder: "Enter password",
     login_btn: "Login",
     login_loading: "Verifying...",
+    back_to_landing: "Back to Landing Page",
 
     // Sidebar
     hrms: "HRMS",
