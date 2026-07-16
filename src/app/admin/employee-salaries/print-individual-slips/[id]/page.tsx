@@ -182,7 +182,7 @@ export default function PrintIndividualSlipsPage() {
                     <span className="text-slate-900">{parseFloat(String(row.fixed_allowances || 0)).toFixed(2)}</span>
                   </li>
                   <li className="flex justify-between items-center text-sm font-bold">
-                    <span className="text-slate-600">{t('variable_allowances')}</span>
+                    <span className="text-slate-600">{t('changable_allowances')}</span>
                     <span className="text-slate-900">{parseFloat(String(row.changable_allowances || 0)).toFixed(2)}</span>
                   </li>
                   <li className="flex justify-between items-center text-sm font-bold">
@@ -279,7 +279,8 @@ export default function PrintIndividualSlipsPage() {
       </div>
 
       {/* Global Portrait Print Style with Page Breaks */}
-      <style dangerouslySetInnerHTML={{__html: `
+      <style dangerouslySetInnerHTML={{
+        __html: `
         @media print {
           @page {
             size: portrait;

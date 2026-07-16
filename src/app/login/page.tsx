@@ -45,11 +45,11 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 py-12 px-4 sm:px-6 lg:px-8 relative overflow-hidden" dir="rtl">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-700 via-blue-600 to-cyan-500 py-12 px-4 sm:px-6 lg:px-8 relative overflow-hidden" dir="rtl">
       {/* Abstract Background Shapes */}
       <div className="absolute top-0 left-0 w-96 h-96 bg-white/20 rounded-full mix-blend-overlay filter blur-3xl opacity-70 animate-pulse"></div>
-      <div className="absolute top-0 right-0 w-96 h-96 bg-yellow-300/20 rounded-full mix-blend-overlay filter blur-3xl opacity-70 animate-pulse" style={{ animationDelay: '2s' }}></div>
-      <div className="absolute -bottom-8 left-20 w-96 h-96 bg-pink-300/20 rounded-full mix-blend-overlay filter blur-3xl opacity-70 animate-pulse" style={{ animationDelay: '4s' }}></div>
+      <div className="absolute top-0 right-0 w-96 h-96 bg-cyan-300/20 rounded-full mix-blend-overlay filter blur-3xl opacity-70 animate-pulse" style={{ animationDelay: '2s' }}></div>
+      <div className="absolute -bottom-8 left-20 w-96 h-96 bg-sky-300/20 rounded-full mix-blend-overlay filter blur-3xl opacity-70 animate-pulse" style={{ animationDelay: '4s' }}></div>
 
       <div className="max-w-md w-full space-y-8 bg-white/10 backdrop-blur-xl border border-white/20 p-10 rounded-3xl shadow-2xl z-10 relative">
         <div>

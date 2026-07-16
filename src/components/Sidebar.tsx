@@ -8,7 +8,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 export default function Sidebar() {
   const pathname = usePathname();
   const { t } = useLanguage();
-  
+
   // State for manual opening/closing overrides
   const [manualMenus, setManualMenus] = useState<Record<string, boolean>>({});
   const [prevPathname, setPrevPathname] = useState(pathname);
@@ -21,40 +21,40 @@ export default function Sidebar() {
 
   const matchesSection = (section: string) => {
     if (section === 'employees') {
-      return !!(pathname?.includes('/admin/employees') || 
-                pathname?.includes('/admin/reward-sal-types') || 
-                pathname?.includes('/admin/discount-sal-types') || 
-                pathname?.includes('/admin/allowance-sal-types'));
+      return !!(pathname?.includes('/admin/employees') ||
+        pathname?.includes('/admin/reward-sal-types') ||
+        pathname?.includes('/admin/discount-sal-types') ||
+        pathname?.includes('/admin/allowance-sal-types'));
     }
     if (section === 'salaries') {
       return !!(pathname?.includes('/admin/sanctions') ||
-                pathname?.includes('/admin/absences') ||
-                pathname?.includes('/admin/discounts') ||
-                pathname?.includes('/admin/loans') ||
-                pathname?.includes('/admin/permanent-loans') ||
-                pathname?.includes('/admin/additions') ||
-                pathname?.includes('/admin/rewards') ||
-                pathname?.includes('/admin/allowances') ||
-                pathname?.includes('/admin/salary-records') ||
-                pathname?.includes('/admin/employee-salaries'));
+        pathname?.includes('/admin/absences') ||
+        pathname?.includes('/admin/discounts') ||
+        pathname?.includes('/admin/loans') ||
+        pathname?.includes('/admin/permanent-loans') ||
+        pathname?.includes('/admin/additions') ||
+        pathname?.includes('/admin/rewards') ||
+        pathname?.includes('/admin/allowances') ||
+        pathname?.includes('/admin/salary-records') ||
+        pathname?.includes('/admin/employee-salaries'));
     }
     if (section === 'settings') {
-      return !!(pathname?.includes('/admin/general-settings') || 
-                pathname?.includes('/admin/finance-calendars') || 
-                pathname?.includes('/admin/branches') || 
-                pathname?.includes('/admin/shifts') || 
-                pathname?.includes('/admin/departments') || 
-                pathname?.includes('/admin/jobs-categories') || 
-                pathname?.includes('/admin/qualifications') || 
-                pathname?.includes('/admin/occasions') || 
-                pathname?.includes('/admin/resignations') || 
-                pathname?.includes('/admin/nationalities') || 
-                pathname?.includes('/admin/religions') || 
-                pathname?.includes('/admin/blood-groups') || 
-                pathname?.includes('/admin/countries') || 
-                pathname?.includes('/admin/governorates') || 
-                pathname?.includes('/admin/languages') || 
-                pathname?.includes('/admin/centers'));
+      return !!(pathname?.includes('/admin/general-settings') ||
+        pathname?.includes('/admin/finance-calendars') ||
+        pathname?.includes('/admin/branches') ||
+        pathname?.includes('/admin/shifts') ||
+        pathname?.includes('/admin/departments') ||
+        pathname?.includes('/admin/jobs-categories') ||
+        pathname?.includes('/admin/qualifications') ||
+        pathname?.includes('/admin/occasions') ||
+        pathname?.includes('/admin/resignations') ||
+        pathname?.includes('/admin/nationalities') ||
+        pathname?.includes('/admin/religions') ||
+        pathname?.includes('/admin/blood-groups') ||
+        pathname?.includes('/admin/countries') ||
+        pathname?.includes('/admin/governorates') ||
+        pathname?.includes('/admin/languages') ||
+        pathname?.includes('/admin/centers'));
     }
     return false;
   };
@@ -79,7 +79,7 @@ export default function Sidebar() {
     <div className="w-72 bg-slate-900 text-slate-300 min-h-screen flex flex-col shadow-2xl relative overflow-hidden transition-all duration-300">
       {/* Decorative gradient blur in background */}
       <div className="absolute top-0 -left-10 w-40 h-40 bg-indigo-500/20 rounded-full blur-3xl"></div>
-      
+
       {/* Brand Logo */}
       <div className="h-20 flex items-center justify-center border-b border-slate-800/50 px-6 backdrop-blur-sm z-10">
         <div className="flex items-center gap-3">
@@ -92,7 +92,7 @@ export default function Sidebar() {
 
       {/* Sidebar Menu */}
       <nav className="flex-1 px-4 py-6 space-y-2 overflow-y-auto custom-scrollbar z-10">
-        
+
         {/* Dashboard Link */}
         <Link href="/admin" className={`group flex items-center px-4 py-3.5 rounded-2xl transition-all duration-300 ${pathname === '/admin' ? 'bg-gradient-to-r from-indigo-500 to-purple-600 text-white shadow-lg shadow-indigo-500/30' : 'hover:bg-slate-800/50 hover:text-white'}`}>
           <svg className={`w-5 h-5 ml-3 transition-colors ${pathname === '/admin' ? 'text-white' : 'text-slate-400 group-hover:text-white'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>
@@ -102,7 +102,7 @@ export default function Sidebar() {
         {/* Settings Menu */}
         <div className="pt-4">
           <p className="px-4 text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">{t('admin_settings')}</p>
-          <button 
+          <button
             onClick={() => toggleMenu('settings')}
             className={`group w-full flex items-center justify-between px-4 py-3.5 rounded-2xl transition-all duration-300 ${isMenuOpen('settings') ? 'bg-slate-800/50 text-white' : 'hover:bg-slate-800/30 hover:text-white'}`}
           >
@@ -114,7 +114,7 @@ export default function Sidebar() {
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
             </div>
           </button>
-          
+
           <div className={`overflow-hidden transition-all duration-500 ${isMenuOpen('settings') ? 'max-h-[1200px] opacity-100 mt-2' : 'max-h-0 opacity-0'}`}>
             <div className="space-y-1 mx-4 ltr:border-l-2 ltr:pl-4 rtl:border-r-2 rtl:pr-4 border-slate-800/50 py-1">
               <Link href="/admin/general-settings" className={`flex items-center px-4 py-2.5 text-sm rounded-xl transition-all duration-300 ${isActive('/admin/general-settings') ? 'text-white bg-indigo-500/10 font-bold' : 'text-slate-400 hover:text-white hover:bg-slate-800/50 hover:translate-x-1'}`}>
@@ -187,7 +187,7 @@ export default function Sidebar() {
 
         {/* Employees Menu */}
         <div className="pt-2">
-          <button 
+          <button
             onClick={() => toggleMenu('employees')}
             className={`group w-full flex items-center justify-between px-4 py-3.5 rounded-2xl transition-all duration-300 ${isMenuOpen('employees') ? 'bg-slate-800/50 text-white' : 'hover:bg-slate-800/30 hover:text-white'}`}
           >
@@ -199,7 +199,7 @@ export default function Sidebar() {
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
             </div>
           </button>
-          
+
           <div className={`overflow-hidden transition-all duration-500 ${isMenuOpen('employees') ? 'max-h-[800px] opacity-100 mt-2' : 'max-h-0 opacity-0'}`}>
             <div className="space-y-1 mx-4 ltr:border-l-2 ltr:pl-4 rtl:border-r-2 rtl:pr-4 border-slate-800/50 py-1">
               <Link href="/admin/employees" className={`flex items-center px-4 py-2.5 text-sm rounded-xl transition-all duration-300 ${isActive('/admin/employees') ? 'text-white bg-purple-500/10 font-bold' : 'text-slate-400 hover:text-white hover:bg-slate-800/50 hover:translate-x-1'}`}>
@@ -224,7 +224,7 @@ export default function Sidebar() {
 
         {/* Salaries & Payroll Menu */}
         <div className="pt-2">
-          <button 
+          <button
             onClick={() => toggleMenu('salaries')}
             className={`group w-full flex items-center justify-between px-4 py-3.5 rounded-2xl transition-all duration-300 ${isMenuOpen('salaries') ? 'bg-slate-800/50 text-white' : 'hover:bg-slate-800/30 hover:text-white'}`}
           >
@@ -236,7 +236,7 @@ export default function Sidebar() {
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
             </div>
           </button>
-          
+
           <div className={`overflow-hidden transition-all duration-500 ${isMenuOpen('salaries') ? 'max-h-[800px] opacity-100 mt-2' : 'max-h-0 opacity-0'}`}>
             <div className="space-y-1 mx-4 ltr:border-l-2 ltr:pl-4 rtl:border-r-2 rtl:pr-4 border-slate-800/50 py-1">
               <Link href="/admin/salary-records" className={`flex items-center px-4 py-2.5 text-sm rounded-xl transition-all duration-300 ${isActive('/admin/salary-records') ? 'text-white bg-emerald-500/10 font-bold' : 'text-slate-400 hover:text-white hover:bg-slate-800/50 hover:translate-x-1'}`}>
@@ -274,7 +274,7 @@ export default function Sidebar() {
               </Link>
               <Link href="/admin/allowances" className={`flex items-center px-4 py-2.5 text-sm rounded-xl transition-all duration-300 ${isActive('/admin/allowances') ? 'text-white bg-emerald-500/10 font-bold' : 'text-slate-400 hover:text-white hover:bg-slate-800/50 hover:translate-x-1'}`}>
                 <div className={`w-1.5 h-1.5 rounded-full mx-2 transition-colors ${isActive('/admin/allowances') ? 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.8)]' : 'bg-slate-600'}`}></div>
-                {t('variable_allowances')}
+                {t('changable_allowances')}
               </Link>
               <Link href="/admin/employee-salaries" className={`flex items-center px-4 py-2.5 text-sm rounded-xl transition-all duration-300 ${isActive('/admin/employee-salaries') ? 'text-white bg-emerald-500/10 font-bold' : 'text-slate-400 hover:text-white hover:bg-slate-800/50 hover:translate-x-1'}`}>
                 <div className={`w-1.5 h-1.5 rounded-full mx-2 transition-colors ${isActive('/admin/employee-salaries') ? 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.8)]' : 'bg-slate-600'}`}></div>
@@ -283,7 +283,7 @@ export default function Sidebar() {
             </div>
           </div>
         </div>
-      
+
       </nav>
 
       {/* Footer Profile Area */}

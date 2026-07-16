@@ -504,14 +504,14 @@ export default function EmployeeSalaryDetailsPage() {
 
         {/* Benefits & Deductions Grid Layout */}
         <div className="p-6 grid grid-cols-1 lg:grid-cols-2 gap-8 print:grid-cols-2 print:gap-4 print:p-0">
-          
+
           {/* Earnings / Benefits Section */}
           <div className="bg-emerald-50/20 border border-emerald-50 rounded-2xl p-6 print:border-2 print:border-black print:bg-white print:rounded-none">
             <h3 className="text-lg font-black text-emerald-800 print:text-black mb-4 flex items-center gap-2 pb-2 border-b border-emerald-100/50 print:border-black">
               <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 print:hidden"></span>
               {t('first_benefits')}
             </h3>
-            
+
             <div className="space-y-4">
               <div className="flex justify-between items-center py-2 border-b border-slate-100">
                 <span className="text-slate-500 font-bold print:text-black">{t('basic_salary')}</span>
@@ -530,7 +530,7 @@ export default function EmployeeSalaryDetailsPage() {
                 <span className="font-black text-slate-800 print:text-black">{parseFloat(String(data.fixed_allowances || 0)).toFixed(2)} {t('currency')}</span>
               </div>
               <div className="flex justify-between items-center py-2 border-b border-slate-100">
-                <span className="text-slate-500 font-bold print:text-black">{t('variable_allowances')}</span>
+                <span className="text-slate-500 font-bold print:text-black">{t('changable_allowances')}</span>
                 <span className="font-black text-slate-800 print:text-black">{parseFloat(String(data.changable_allowances || 0)).toFixed(2)} {t('currency')}</span>
               </div>
               <div className="flex justify-between items-center py-2 border-b border-slate-100">
@@ -544,7 +544,7 @@ export default function EmployeeSalaryDetailsPage() {
                   {parseFloat(String(data.additional_days_total || 0)).toFixed(2)} {t('currency')}
                 </span>
               </div>
-              
+
               <div className="flex justify-between items-center pt-4 border-t border-emerald-100 font-black text-emerald-800 print:text-black print:border-black">
                 <span className="text-base">{t('total_benefits')}</span>
                 <span className="text-xl">{parseFloat(String(data.total_benefits || 0)).toFixed(2)} {t('currency')}</span>

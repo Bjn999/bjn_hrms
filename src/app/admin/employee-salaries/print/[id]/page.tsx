@@ -70,7 +70,7 @@ export default function PrintSalarySlipPage() {
         if (result.status) {
           setData(result.data);
           setFinanceMonth(result.finance_month);
-          
+
           // Wait for DOM to render before printing
           // setTimeout(() => {
           //   window.print();
@@ -102,7 +102,7 @@ export default function PrintSalarySlipPage() {
 
   return (
     <div className="bg-white min-h-screen font-sans text-slate-800" dir={language === 'ar' ? 'rtl' : 'ltr'}>
-      
+
       {/* Controls (Hidden on Print) */}
       <div className="print:hidden bg-slate-100 p-4 flex justify-center gap-4 border-b border-slate-200">
         <button onClick={() => window.print()} className="bg-slate-800 text-white px-6 py-2 rounded-lg font-bold hover:bg-slate-900 transition-colors flex items-center gap-2">
@@ -114,7 +114,7 @@ export default function PrintSalarySlipPage() {
 
       {/* A4 Paper Container */}
       <div className="max-w-[800px] mx-auto bg-white p-10 print:p-0 print:shadow-none shadow-xl my-8 print:my-0">
-        
+
         <div className="flex justify-between items-start border-b-2 border-slate-800 pb-4 mb-4">
           <div className="flex items-center gap-4">
             <div className="w-16 h-16 bg-slate-900 flex items-center justify-center text-white text-2xl font-black rounded-lg">
@@ -164,7 +164,7 @@ export default function PrintSalarySlipPage() {
 
         {/* Financial Details Grid */}
         <div className="grid grid-cols-2 gap-8 mb-4">
-          
+
           {/* Earnings */}
           <div>
             <h3 className="text-lg font-black text-emerald-700 border-b-2 border-emerald-700 pb-2 mb-4 flex items-center justify-between">
@@ -181,7 +181,7 @@ export default function PrintSalarySlipPage() {
                 <span className="text-slate-900">{parseFloat(String(data.fixed_allowances || 0)).toFixed(2)}</span>
               </li>
               <li className="flex justify-between items-center text-sm font-bold">
-                <span className="text-slate-600">{t('variable_allowances')}</span>
+                <span className="text-slate-600">{t('changable_allowances')}</span>
                 <span className="text-slate-900">{parseFloat(String(data.changable_allowances || 0)).toFixed(2)}</span>
               </li>
               <li className="flex justify-between items-center text-sm font-bold">
@@ -278,7 +278,8 @@ export default function PrintSalarySlipPage() {
       </div>
 
       {/* Global Print Styles inside page */}
-      <style dangerouslySetInnerHTML={{__html: `
+      <style dangerouslySetInnerHTML={{
+        __html: `
         @media print {
           body {
             background-color: white !important;

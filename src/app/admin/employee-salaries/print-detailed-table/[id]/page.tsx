@@ -17,16 +17,21 @@ interface SalaryRecord {
   fixed_allowances: number | string;
   changable_allowances: number | string;
   additional_days_total: number | string;
+  additional_days_counter: number | string;
   total_benefits: number | string;
   socialinsurancecutmonthly: number | string;
   medicalinsurancecutmonthly: number | string;
   absence_days_total: number | string;
+  absence_days_counter: number | string;
   sanctions_days_total: number | string;
+  sanctions_days_counter: number | string;
   discount: number | string;
   monthly_loan: number | string;
   permanent_loan: number | string;
   total_deduction: number | string;
   final_the_net: number | string;
+  last_salary_remain_balance: number | string;
+  final_the_net_after_close: number | string;
 }
 
 const API = process.env.NEXT_PUBLIC_API_URL || '';
@@ -96,13 +101,16 @@ export default function PrintDetailedTablePage() {
   const sumReward = data.reduce((s, r) => s + parseFloat(String(r.reward || 0)), 0);
   const sumFixedAllow = data.reduce((s, r) => s + parseFloat(String(r.fixed_allowances || 0)), 0);
   const sumVarAllow = data.reduce((s, r) => s + parseFloat(String(r.changable_allowances || 0)), 0);
-  const sumAddDays = data.reduce((s, r) => s + parseFloat(String(r.additional_days_total || 0)), 0);
+  const sumAddionDays = data.reduce((s, r) => s + parseFloat(String(r.additional_days_counter || 0)), 0);
+  const sumAddion = data.reduce((s, r) => s + parseFloat(String(r.additional_days_total || 0)), 0);
   const sumBenefits = data.reduce((s, r) => s + parseFloat(String(r.total_benefits || 0)), 0);
   
   const sumSocial = data.reduce((s, r) => s + parseFloat(String(r.socialinsurancecutmonthly || 0)), 0);
   const sumMedical = data.reduce((s, r) => s + parseFloat(String(r.medicalinsurancecutmonthly || 0)), 0);
+  const sumAbsenceDays = data.reduce((s, r) => s + parseFloat(String(r.absence_days_counter || 0)), 0);
   const sumAbsence = data.reduce((s, r) => s + parseFloat(String(r.absence_days_total || 0)), 0);
   const sumSanctions = data.reduce((s, r) => s + parseFloat(String(r.sanctions_days_total || 0)), 0);
+  const sumSanctionsDays = data.reduce((s, r) => s + parseFloat(String(r.sanctions_days_counter || 0)), 0);
   const sumDiscount = data.reduce((s, r) => s + parseFloat(String(r.discount || 0)), 0);
   const sumMonthlyLoan = data.reduce((s, r) => s + parseFloat(String(r.monthly_loan || 0)), 0);
   const sumPermLoan = data.reduce((s, r) => s + parseFloat(String(r.permanent_loan || 0)), 0);
@@ -151,10 +159,11 @@ export default function PrintDetailedTablePage() {
                 <th rowSpan={2} className="border border-slate-300 px-2 py-2 text-center font-black">{language === 'ar' ? 'الموظف' : 'Employee'}</th>
                 <th rowSpan={2} className="border border-slate-300 px-1 py-2 text-center font-black">{language === 'ar' ? 'الوظيفة' : 'Job'}</th>
                 <th rowSpan={2} className="border border-slate-300 px-1 py-2 text-center font-black">{language === 'ar' ? 'الراتب الأساسي' : 'Basic Sal'}</th>
-                <th colSpan={5} className="border border-slate-300 px-2 py-1 text-center font-black bg-emerald-50 text-emerald-800 print:bg-slate-50 print:text-black">{language === 'ar' ? 'الاستحقاقات (الإضافات)' : 'Benefits (Additions)'}</th>
+                <th colSpan={6} className="border border-slate-300 px-2 py-1 text-center font-black bg-emerald-50 text-emerald-800 print:bg-slate-50 print:text-black">{language === 'ar' ? 'الاستحقاقات (الإضافات)' : 'Benefits (Additions)'}</th>
                 <th rowSpan={2} className="border border-slate-300 px-1 py-2 text-center font-black bg-emerald-100 text-emerald-900 print:bg-slate-100 print:text-black">{language === 'ar' ? 'إجمالي الاستحقاقات' : 'Total Benefits'}</th>
-                <th colSpan={7} className="border border-slate-300 px-2 py-1 text-center font-black bg-rose-50 text-rose-800 print:bg-slate-50 print:text-black">{language === 'ar' ? 'الاستقطاعات (الخصومات)' : 'Deductions'}</th>
+                <th colSpan={9} className="border border-slate-300 px-2 py-1 text-center font-black bg-rose-50 text-rose-800 print:bg-slate-50 print:text-black">{language === 'ar' ? 'الاستقطاعات (الخصومات)' : 'Deductions'}</th>
                 <th rowSpan={2} className="border border-slate-300 px-1 py-2 text-center font-black bg-rose-100 text-rose-900 print:bg-slate-100 print:text-black">{language === 'ar' ? 'إجمالي الاستقطاعات' : 'Total Deductions'}</th>
+                <th rowSpan={2} className="border border-slate-300 px-2 py-2 text-center font-black bg-indigo-900 text-white print:bg-slate-200 print:text-black">{language === 'ar' ? 'الرصيد المرحل' : 'Last Salary'}</th>
                 <th rowSpan={2} className="border border-slate-300 px-2 py-2 text-center font-black bg-indigo-900 text-white print:bg-slate-200 print:text-black">{language === 'ar' ? 'صافي الراتب' : 'Net Salary'}</th>
                 <th rowSpan={2} className="border border-slate-300 px-2 py-2 text-center font-black print:w-20">{language === 'ar' ? 'التوقيع' : 'Signature'}</th>
               </tr>
@@ -163,12 +172,12 @@ export default function PrintDetailedTablePage() {
                 <th className="border border-slate-300 px-1 py-1 text-center font-bold bg-emerald-50/50">{language === 'ar' ? 'مكافأة' : 'Reward'}</th>
                 <th className="border border-slate-300 px-1 py-1 text-center font-bold bg-emerald-50/50">{language === 'ar' ? 'بدل ثابت' : 'Fix Allow'}</th>
                 <th className="border border-slate-300 px-1 py-1 text-center font-bold bg-emerald-50/50">{language === 'ar' ? 'بدل متغير' : 'Var Allow'}</th>
-                <th className="border border-slate-300 px-1 py-1 text-center font-bold bg-emerald-50/50">{language === 'ar' ? 'إضافي أيام' : 'Add Days'}</th>
+                <th colSpan={2} className="border border-slate-300 px-1 py-1 text-center font-bold bg-emerald-50/50">{language === 'ar' ? 'إضافي أيام' : 'Add Days'}</th>
                 
                 <th className="border border-slate-300 px-1 py-1 text-center font-bold bg-rose-50/50">{language === 'ar' ? 'تأمين إجتماعي' : 'Social Ins'}</th>
                 <th className="border border-slate-300 px-1 py-1 text-center font-bold bg-rose-50/50">{language === 'ar' ? 'تأمين طبي' : 'Medical Ins'}</th>
                 <th className="border border-slate-300 px-1 py-1 text-center font-bold bg-rose-50/50">{language === 'ar' ? 'غياب' : 'Absence'}</th>
-                <th className="border border-slate-300 px-1 py-1 text-center font-bold bg-rose-50/50">{language === 'ar' ? 'جزاءات' : 'Sanc.'}</th>
+                <th colSpan={2} className="border border-slate-300 px-1 py-1 text-center font-bold bg-rose-50/50">{language === 'ar' ? 'جزاءات' : 'Sanc.'}</th>
                 <th className="border border-slate-300 px-1 py-1 text-center font-bold bg-rose-50/50">{language === 'ar' ? 'خصم مالي' : 'Discount'}</th>
                 <th className="border border-slate-300 px-1 py-1 text-center font-bold bg-rose-50/50">{language === 'ar' ? 'سلفة شهرية' : 'Mo Loan'}</th>
                 <th className="border border-slate-300 px-1 py-1 text-center font-bold bg-rose-50/50">{language === 'ar' ? 'سلفة مستديمة' : 'Perm Loan'}</th>
@@ -188,20 +197,24 @@ export default function PrintDetailedTablePage() {
                   <td className="border border-slate-300 px-1 py-1.5 text-emerald-700 print:text-black">{parseFloat(String(row.reward || 0)).toFixed(2)}</td>
                   <td className="border border-slate-300 px-1 py-1.5 text-emerald-700 print:text-black">{parseFloat(String(row.fixed_allowances || 0)).toFixed(2)}</td>
                   <td className="border border-slate-300 px-1 py-1.5 text-emerald-700 print:text-black">{parseFloat(String(row.changable_allowances || 0)).toFixed(2)}</td>
+                  <td className="border border-slate-300 px-1 py-1.5 text-emerald-700 print:text-black">{parseFloat(String(row.additional_days_counter || 0)).toFixed(2)}</td>
                   <td className="border border-slate-300 px-1 py-1.5 text-emerald-700 print:text-black">{parseFloat(String(row.additional_days_total || 0)).toFixed(2)}</td>
                   
                   <td className="border border-slate-300 px-1 py-1.5 font-black bg-emerald-50 text-emerald-800 print:text-black print:bg-transparent">{parseFloat(String(row.total_benefits || 0)).toFixed(2)}</td>
                   
-                  <td className="border border-slate-300 px-1 py-1.5 text-rose-700 print:text-black">{parseFloat(String(row.socialinsurancecutmonthly || 0)).toFixed(2)}</td>
-                  <td className="border border-slate-300 px-1 py-1.5 text-rose-700 print:text-black">{parseFloat(String(row.medicalinsurancecutmonthly || 0)).toFixed(2)}</td>
-                  <td className="border border-slate-300 px-1 py-1.5 text-rose-700 print:text-black">{parseFloat(String(row.absence_days_total || 0)).toFixed(2)}</td>
-                  <td className="border border-slate-300 px-1 py-1.5 text-rose-700 print:text-black">{parseFloat(String(row.sanctions_days_total || 0)).toFixed(2)}</td>
-                  <td className="border border-slate-300 px-1 py-1.5 text-rose-700 print:text-black">{parseFloat(String(row.discount || 0)).toFixed(2)}</td>
-                  <td className="border border-slate-300 px-1 py-1.5 text-rose-700 print:text-black">{parseFloat(String(row.monthly_loan || 0)).toFixed(2)}</td>
-                  <td className="border border-slate-300 px-1 py-1.5 text-rose-700 print:text-black">{parseFloat(String(row.permanent_loan || 0)).toFixed(2)}</td>
+                  <td className="border border-slate-300 px-1 py-1.5 text-rose-700 print:text-black w-10">{parseFloat(String(row.socialinsurancecutmonthly || 0)).toFixed(2)}</td>
+                  <td className="border border-slate-300 px-1 py-1.5 text-rose-700 print:text-black w-10">{parseFloat(String(row.medicalinsurancecutmonthly || 0)).toFixed(2)}</td>
+                  <td className="border border-slate-300 px-1 py-1.5 text-rose-700 print:text-black w-10">{parseFloat(String(row.absence_days_counter || 0)).toFixed(2)}</td>
+                  <td className="border border-slate-300 px-1 py-1.5 text-rose-700 print:text-black w-10">{parseFloat(String(row.absence_days_total || 0)).toFixed(2)}</td>
+                  <td className="border border-slate-300 px-1 py-1.5 text-rose-700 print:text-black w-10">{parseFloat(String(row.sanctions_days_counter || 0)).toFixed(2)}</td>
+                  <td className="border border-slate-300 px-1 py-1.5 text-rose-700 print:text-black w-10">{parseFloat(String(row.sanctions_days_total || 0)).toFixed(2)}</td>
+                  <td className="border border-slate-300 px-1 py-1.5 text-rose-700 print:text-black w-10">{parseFloat(String(row.discount || 0)).toFixed(2)}</td>
+                  <td className="border border-slate-300 px-1 py-1.5 text-rose-700 print:text-black w-10">{parseFloat(String(row.monthly_loan || 0)).toFixed(2)}</td>
+                  <td className="border border-slate-300 px-1 py-1.5 text-rose-700 print:text-black w-10">{parseFloat(String(row.permanent_loan || 0)).toFixed(2)}</td>
                   
                   <td className="border border-slate-300 px-1 py-1.5 font-black bg-rose-50 text-rose-800 print:text-black print:bg-transparent">{parseFloat(String(row.total_deduction || 0)).toFixed(2)}</td>
                   
+                  <td className="border border-slate-300 px-2 py-1.5 font-black bg-slate-100 text-indigo-900 print:text-black print:bg-transparent">{parseFloat(String(row.last_salary_remain_balance || 0)).toFixed(2)}</td>
                   <td className="border border-slate-300 px-2 py-1.5 font-black bg-slate-100 text-indigo-900 print:text-black print:bg-transparent">{parseFloat(String(row.final_the_net || 0)).toFixed(2)}</td>
                   <td className="border border-slate-300 px-2 py-1.5 text-center text-[10px] text-slate-400 font-bold print:w-24"></td>
                 </tr>
@@ -214,18 +227,22 @@ export default function PrintDetailedTablePage() {
                 <td className="border border-slate-300 px-1 py-2 text-emerald-800 print:text-black">{sumReward.toFixed(2)}</td>
                 <td className="border border-slate-300 px-1 py-2 text-emerald-800 print:text-black">{sumFixedAllow.toFixed(2)}</td>
                 <td className="border border-slate-300 px-1 py-2 text-emerald-800 print:text-black">{sumVarAllow.toFixed(2)}</td>
-                <td className="border border-slate-300 px-1 py-2 text-emerald-800 print:text-black">{sumAddDays.toFixed(2)}</td>
+                <td className="border border-slate-300 px-1 py-2 text-emerald-800 print:text-black">{sumAddionDays.toFixed(2)}</td>
+                <td className="border border-slate-300 px-1 py-2 text-emerald-800 print:text-black">{sumAddion.toFixed(2)}</td>
                 <td className="border border-slate-300 px-1 py-2 bg-emerald-100 text-emerald-950 print:text-black print:bg-transparent">{sumBenefits.toFixed(2)}</td>
                 <td className="border border-slate-300 px-1 py-2 text-rose-800 print:text-black">{sumSocial.toFixed(2)}</td>
                 <td className="border border-slate-300 px-1 py-2 text-rose-800 print:text-black">{sumMedical.toFixed(2)}</td>
+                <td className="border border-slate-300 px-1 py-2 text-rose-800 print:text-black">{sumAbsenceDays.toFixed(2)}</td>
                 <td className="border border-slate-300 px-1 py-2 text-rose-800 print:text-black">{sumAbsence.toFixed(2)}</td>
+                <td className="border border-slate-300 px-1 py-2 text-rose-800 print:text-black">{sumSanctionsDays.toFixed(2)}</td>
                 <td className="border border-slate-300 px-1 py-2 text-rose-800 print:text-black">{sumSanctions.toFixed(2)}</td>
                 <td className="border border-slate-300 px-1 py-2 text-rose-800 print:text-black">{sumDiscount.toFixed(2)}</td>
                 <td className="border border-slate-300 px-1 py-2 text-rose-800 print:text-black">{sumMonthlyLoan.toFixed(2)}</td>
                 <td className="border border-slate-300 px-1 py-2 text-rose-800 print:text-black">{sumPermLoan.toFixed(2)}</td>
                 <td className="border border-slate-300 px-1 py-2 bg-rose-100 text-rose-950 print:text-black print:bg-transparent">{sumDeductions.toFixed(2)}</td>
-                <td className="border border-slate-300 px-2 py-2 bg-indigo-200 text-indigo-950 print:text-black print:bg-transparent">{sumNet.toFixed(2)}</td>
                 <td className="border border-slate-300 px-2 py-2"></td>
+                <td className="border border-slate-300 px-2 py-2 bg-indigo-200 text-indigo-950 print:text-black print:bg-transparent">{sumNet.toFixed(2)}</td>
+                <td className="border border-slate-300 bg-black px-2 py-2"></td>
               </tr>
             </tbody>
           </table>
