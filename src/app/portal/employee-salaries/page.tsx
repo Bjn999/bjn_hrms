@@ -1,0 +1,159 @@
+'use client';
+
+import { useEffect, useState } from 'react';
+import Link from 'next/link';
+import LoadingScreen from '@/components/ui/LoadingScreen';
+import { useLanguage } from '@/contexts/LanguageContext';
+import { useToast } from '@/contexts/ToastContext';
+import { FinanceMonth, FinanceCalendar } from '@/types';
+
+const API = (process.env.NEXT_PUBLIC_API_URL || '') + '/admin';
+
+export default function EmployeeSalariesPage() {
+  const { t, language } = useLanguage();
+  const { showToast } = useToast();
+
+  const [data, setData] = useState<FinanceMonth[]>([]);
+  const [financeYears, setFinanceYears] = useState<FinanceCalendar[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [filterYear, setFilterYear] = useState('all');
+
+  const token = () => localStorage.getItem('auth_token');
+  const headers = { 'Authorization': `Bearer ${token()}`, 'Accept': 'application/json' };
+
+  const fetchData = async () => {
+    setLoading(true);
+    try {
+      const params = filterYear !== 'all' ? `?finance_yr=${filterYear}` : '';
+      const res = await fetch(`${API}/employee-salaries/months${params}`, { headers });
+      const result = await res.json();
+      if (result.status) {
+        setData(result.data || []);
+        setFinanceYears(result.finance_years || []);
+      }
+    } catch {
+      showToast('حدث خطأ في الاتصال', 'error');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      fetchData();
+    }, 0);
+    return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filterYear]);
+
+  const getMonthLabel = (item: FinanceMonth) => {
+    const monthsAr: Record<number, string> = {
+      1: 'يناير', 2: 'فبراير', 3: 'مارس', 4: 'أبريل',
+      5: 'مايو', 6: 'يونيو', 7: 'يوليو', 8: 'أغسطس',
+      9: 'سبتمبر', 10: 'أكتوبر', 11: 'نوفمبر', 12: 'ديسمبر'
+    };
+    const mid = item.month_id;
+    return (mid !== undefined ? monthsAr[mid] : '') || mid || '';
+  };
+
+  if (loading && data.length === 0) return <LoadingScreen />;
+
+  return (
+    <div className="animate-fade-in-up pb-10">
+      <div className="flex justify-between items-end mb-8">
+        <div>
+          <h2 className="text-3xl font-black text-slate-800 tracking-tight">{t('employee_salaries_title')}</h2>
+          <p className="text-slate-500 mt-1 text-sm">{t('employee_salaries_desc')}</p>
+        </div>
+      </div>
+
+      <div className="bg-white p-5 rounded-3xl shadow-sm border border-slate-100 mb-6">
+        <div className="flex items-end gap-4 flex-wrap">
+          <div>
+            <label className="block text-xs font-bold text-slate-500 mb-2 uppercase tracking-wider">{t('finance_year')}</label>
+            <select
+              value={filterYear}
+              onChange={(e) => setFilterYear(e.target.value)}
+              className="px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none text-slate-700 font-bold focus:ring-2 focus:ring-violet-500/20 transition-all"
+            >
+              <option value="all">{t('all_years')}</option>
+              {financeYears.map((y: FinanceCalendar) => (
+                <option key={y.finance_yr} value={y.finance_yr}>{y.finance_yr}</option>
+              ))}
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div className="bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden relative">
+        <div className="absolute top-0 right-0 w-full h-1 bg-gradient-to-l from-violet-500 to-purple-600"></div>
+        <div className="p-6 overflow-x-auto">
+          <table className="w-full text-sm text-right">
+            <thead className="bg-slate-50 text-slate-700 uppercase border-b border-slate-100">
+              <tr>
+                <th className="px-5 py-4 font-bold uppercase text-xs tracking-wider">{t('month_name_ar')}</th>
+                <th className="px-5 py-4 font-bold uppercase text-xs tracking-wider">{t('start_date_label')}</th>
+                <th className="px-5 py-4 font-bold uppercase text-xs tracking-wider">{t('end_date_label')}</th>
+                <th className="px-5 py-4 font-bold uppercase text-xs tracking-wider">{t('start_fingerprint')}</th>
+                <th className="px-5 py-4 font-bold uppercase text-xs tracking-wider">{t('end_fingerprint')}</th>
+                <th className="px-5 py-4 font-bold uppercase text-xs tracking-wider">{t('days_number')}</th>
+                <th className="px-5 py-4 font-bold uppercase text-xs tracking-wider text-center">{t('month_status')}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {data.map((item: FinanceMonth) => {
+                return (
+                  <tr key={item.id} className={`border-b border-slate-50 transition-colors ${item.is_open == 2 ? 'bg-rose-50/30' : 'hover:bg-slate-50/50'}`}>
+                    <td className="px-5 py-4 font-bold text-slate-800">{getMonthLabel(item)}</td>
+                    <td className="px-5 py-4 text-slate-600">{item.start_date_m}</td>
+                    <td className="px-5 py-4 text-slate-600">{item.end_date_m}</td>
+                    <td className="px-5 py-4 text-slate-600">{item.start_date_for_pasma}</td>
+                    <td className="px-5 py-4 text-slate-600">{item.end_date_for_pasma}</td>
+                    <td className="px-5 py-4 text-slate-700 font-bold">{item.number_of_days}</td>
+                    <td className="px-5 py-4 text-center">
+                      <div className="flex items-center justify-center gap-3">
+                        {item.is_open == 1 ? (
+                          <>
+                            <span className="font-bold text-emerald-600">{t('month_open')}</span>
+                            <Link
+                              href={`/portal/employee-salaries/${item.id}`}
+                              className="inline-flex items-center gap-1.5 px-4 py-2 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 rounded-xl transition-colors font-bold text-xs"
+                            >
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
+                              {t('show_salaries')}
+                            </Link>
+                          </>
+                        ) : item.is_open == 2 ? (
+                          <>
+                            <span className="font-bold text-rose-600">{t('month_closed')}</span>
+                            <Link
+                              href={`/portal/employee-salaries/${item.id}`}
+                              className="inline-flex items-center gap-1.5 px-4 py-2 bg-rose-50 text-rose-700 hover:bg-rose-100 rounded-xl transition-colors font-bold text-xs"
+                            >
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
+                              {t('show_salaries')}
+                            </Link>
+                          </>
+                        ) : (
+                          <span className="font-bold text-slate-500">{t('month_waiting_open')}</span>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+          {data.length === 0 && (
+            <div className="text-center py-20">
+              <div className="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-4">
+                <svg className="w-10 h-10 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" /></svg>
+              </div>
+              <p className="text-slate-500 font-bold">{t('no_months_found')}</p>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}

@@ -2,11 +2,13 @@
 export const API_URL = process.env.NEXT_PUBLIC_API_URL || '';
 
 export async function apiFetch(endpoint: string, options: RequestInit = {}) {
-  const token = localStorage.getItem('admin_token');
+  const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null;
+  const language = typeof window !== 'undefined' ? (localStorage.getItem('app_language') || 'ar') : 'ar';
   
   const headers = {
     'Accept': 'application/json',
     'Content-Type': 'application/json',
+    'Accept-Language': language,
     ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
     ...options.headers,
   };
@@ -17,7 +19,7 @@ export async function apiFetch(endpoint: string, options: RequestInit = {}) {
   });
 
   if (response.status === 401) {
-    localStorage.removeItem('admin_token');
+    localStorage.removeItem('auth_token');
     window.location.href = '/login';
     return;
   }

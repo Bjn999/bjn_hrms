@@ -9,7 +9,9 @@ export interface Employee {
   id?: number;
   employee_code: string;
   emp_name: string;
-  job?: string;
+  job?: JobCategory;
+  branch?: Branch;
+  department?: Department;
   job_id?: number;
   emp_sal: number;
   day_price: number;
@@ -196,6 +198,7 @@ export interface FinanceMonth {
   is_open: number;
   month?: {
     name: string;
+    name_en: string;
   };
   added_by?: number;
   updated_by?: number;
@@ -429,4 +432,76 @@ export interface Center {
   governorate?: Governorate;
   country?: Country;
   counterUsed?: number;
+}
+
+export interface Attendance {
+  id: number;
+  company_id: number;
+  employee_code: string | number;
+  finance_months_periods_id: number;
+  main_salary_employee_id?: number;
+  attendance_date: string;
+  variables?: string;
+  shift_hours: number;
+  attendance_status: number;
+  total_hours: number;
+  check_in?: string;
+  check_out?: string;
+  late_attendance?: number;
+  early_leave?: number;
+  overtime_hours?: number;
+  absence_hours?: number;
+  ezen_hours?: string;
+  is_processed?: number;
+  vacations_type_id?: number;
+  occasions_id?: number;
+  cut?: number;
+  year_and_month?: string;
+  branch_id?: number;
+  functional_status?: number;
+  actionDateTime?: string;
+  is_approved?: number;
+  is_archived?: number;
+  archived_at?: string;
+  archived_by?: number;
+  added_by?: number;
+  updated_by?: number;
+  created_at?: string;
+  updated_at?: string;
+  employee?: Employee;
+  added_by_admin?: User;
+  updated_by_admin?: User;
+}
+
+export interface PermissionItem {
+  id: number;
+  name: string;
+  guard_name: string;
+}
+
+export interface RoleItem {
+  id: number;
+  name: string;
+  display_name: string;
+  company_id: string;
+  permissions: PermissionItem[];
+}
+
+export interface PermissionDef {
+  key: string;
+  labelAr: string;
+  labelEn: string;
+  descAr: string;
+  descEn: string;
+  isReadOnly?: boolean;
+}
+
+export interface ModuleGroup {
+  id: string;
+  titleAr: string;
+  titleEn: string;
+  icon: string;
+  colorClass: string;
+  badgeClass: string;
+  permissions: PermissionDef[];
 }

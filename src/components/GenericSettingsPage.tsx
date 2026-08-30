@@ -32,7 +32,7 @@ export default function GenericSettingsPage({
   editKey: string, 
   apiEndpoint: string 
 }) {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const { showToast } = useToast();
   const { confirm } = useConfirm();
   
@@ -47,9 +47,13 @@ export default function GenericSettingsPage({
 
   const fetchData = async () => {
     try {
-      const token = localStorage.getItem('admin_token');
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || ''}/${apiEndpoint}`, {
-        headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/json' }
+      const token = localStorage.getItem('auth_token');
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || ''}/admin/${apiEndpoint}`, {
+        headers: { 
+          'Authorization': `Bearer ${token}`, 
+          'Accept': 'application/json',
+          'Accept-Language': language
+        }
       });
       const result = await res.json();
       if (result.status) setData(result.data);
@@ -67,7 +71,7 @@ export default function GenericSettingsPage({
     }, 0);
     return () => clearTimeout(timer);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [language]);
 
   const handleOpenModal = (type: string, item: SettingItem | null = null) => {
     setModalType(type);
@@ -86,11 +90,16 @@ export default function GenericSettingsPage({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const token = localStorage.getItem('admin_token');
-      const url = modalType === 'add' ? `${process.env.NEXT_PUBLIC_API_URL || ''}/${apiEndpoint}` : `${process.env.NEXT_PUBLIC_API_URL || ''}/${apiEndpoint}/${editingId}`;
+      const token = localStorage.getItem('auth_token');
+      const url = modalType === 'add' ? `${process.env.NEXT_PUBLIC_API_URL || ''}/admin/${apiEndpoint}` : `${process.env.NEXT_PUBLIC_API_URL || ''}/admin/${apiEndpoint}/${editingId}`;
       const res = await fetch(url, {
         method: modalType === 'add' ? 'POST' : 'PUT',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}`, 'Accept': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json', 
+          'Authorization': `Bearer ${token}`, 
+          'Accept': 'application/json',
+          'Accept-Language': language 
+        },
         body: JSON.stringify(formData)
       });
       const result = await res.json();
@@ -115,10 +124,14 @@ export default function GenericSettingsPage({
     if (!isConfirmed) return;
 
     try {
-      const token = localStorage.getItem('admin_token');
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || ''}/${apiEndpoint}/${id}`, {
+      const token = localStorage.getItem('auth_token');
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || ''}/admin/${apiEndpoint}/${id}`, {
         method: 'DELETE',
-        headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/json' }
+        headers: { 
+          'Authorization': `Bearer ${token}`, 
+          'Accept': 'application/json',
+          'Accept-Language': language 
+        }
       });
       const result = await res.json();
       if (result.status) { 
@@ -155,6 +168,11 @@ export default function GenericSettingsPage({
               </tr>
             </thead>
             <tbody>
+              {data.length === 0 && !loading && (
+                <tr>
+                  <td colSpan={5} className="px-6 py-8 text-center text-slate-500 font-bold">{t('no_data')}</td>
+                </tr>
+              )}
               {data.map((item: SettingItem) => (
                 <tr key={item.id} className="border-b border-slate-50 hover:bg-slate-50/50 transition-colors">
                   <td className="px-6 py-4 font-bold text-slate-900">{item.name}</td>

@@ -13,7 +13,7 @@ export default function Home() {
   useEffect(() => {
     const timer = setTimeout(() => {
       setIsMounted(true);
-      const token = localStorage.getItem('admin_token');
+      const token = localStorage.getItem('auth_token');
       if (token) {
         setIsLoggedIn(true);
       }
@@ -27,7 +27,17 @@ export default function Home() {
 
   const handleCtaClick = () => {
     if (isLoggedIn) {
-      router.push('/admin');
+      const userStr = localStorage.getItem('auth_user');
+      if (userStr) {
+        try {
+          const user = JSON.parse(userStr);
+          if (user.role === 'super_admin') {
+            router.push('/super-admin');
+            return;
+          }
+        } catch (e) {}
+      }
+      router.push('/portal');
     } else {
       router.push('/login');
     }
