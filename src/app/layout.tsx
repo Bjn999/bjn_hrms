@@ -20,6 +20,7 @@ export const metadata: Metadata = {
 import { LanguageProvider } from "@/contexts/LanguageContext";
 import { ToastProvider } from "@/contexts/ToastContext";
 import { ConfirmProvider } from "@/contexts/ConfirmContext";
+import { NotificationProvider } from "@/contexts/NotificationContext";
 
 export default function RootLayout({
   children,
@@ -37,7 +38,9 @@ export default function RootLayout({
         <LanguageProvider>
           <ToastProvider>
             <ConfirmProvider>
-              {children}
+              <NotificationProvider>
+                {children}
+              </NotificationProvider>
             </ConfirmProvider>
           </ToastProvider>
         </LanguageProvider>

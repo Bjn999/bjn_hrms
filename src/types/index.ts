@@ -505,3 +505,75 @@ export interface ModuleGroup {
   badgeClass: string;
   permissions: PermissionDef[];
 }
+
+export interface VacationType {
+  id: number;
+  company_id: string;
+  name: string;
+  type_slug: string;
+  is_paid: number;
+  deduct_from_balance: number;
+  max_days_per_year: number;
+  requires_attachment: number;
+  active: number;
+  requests_count?: number;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface EmployeeVacationBalance {
+  id: number;
+  company_id: string;
+  employee_id: number;
+  year: number;
+  carried_over_balance: number | string;
+  initial_assigned_balance: number | string;
+  monthly_accrued_balance: number | string;
+  total_entitled_balance: number | string;
+  used_balance: number | string;
+  pending_balance: number | string;
+  remaining_balance: number | string;
+  notes?: string;
+  last_calculated_at?: string;
+  employee?: {
+    id: number;
+    emp_name: string;
+    employee_code: string;
+    emp_start_date?: string;
+    department?: { id: number; name: string };
+    job?: { id: number; name: string };
+    is_active_for_vaccation?: number;
+  };
+}
+
+export interface VacationRequest {
+  id: number;
+  company_id: string;
+  employee_id: number;
+  vacation_type_id: number;
+  from_date: string;
+  to_date: string;
+  days_count: number;
+  reason?: string;
+  attachment_path?: string;
+  status: number; // 0=Pending, 1=Approved, 2=Rejected, 3=Cancelled
+  action_by?: number;
+  action_reason?: string;
+  action_at?: string;
+  created_at?: string;
+  updated_at?: string;
+  employee?: {
+    id: number;
+    emp_name: string;
+    employee_code: string;
+    branch_id?: number;
+    department?: { id: number; name: string };
+    job?: { id: number; name: string };
+  };
+  vacation_type?: VacationType;
+  action_by_user?: {
+    id: number;
+    name: string;
+  };
+}
+

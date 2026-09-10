@@ -170,54 +170,76 @@ export default function DashboardPage() {
         </>
       ) : (
         <>
-          {/* Personal Stats Cards Grid (3 Cards) */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {/* Personal Stats Cards Grid (4 Cards) */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {/* 1. Personal Info Card */}
             <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-100 flex flex-col items-center text-center hover:shadow-md transition-shadow">
-              <div className="w-16 h-16 rounded-2xl bg-emerald-100 text-emerald-600 flex items-center justify-center mb-4 shadow-inner">
-                <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
+              <div className="w-14 h-14 rounded-2xl bg-emerald-100 text-emerald-600 flex items-center justify-center mb-3 shadow-inner">
+                <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
               </div>
-              <h3 className="font-bold text-slate-800 text-lg mb-1">{language === 'ar' ? 'البيانات الشخصية' : 'Personal Info'}</h3>
-              <p className="text-sm text-slate-500 mb-4">{language === 'ar' ? 'كود الموظف:' : 'Emp Code:'} {dashboardData?.employee?.emp_code || adminUser?.employee?.emp_code || '-'}</p>
-              <div className="w-full bg-slate-50 rounded-2xl p-4 text-sm text-slate-600 space-y-2.5">
-                <div className="flex justify-between"><span>{language === 'ar' ? 'الاسم:' : 'Name:'}</span> <span className="font-bold text-slate-800">{dashboardData?.employee?.emp_name || adminUser?.name}</span></div>
+              <h3 className="font-bold text-slate-800 text-base mb-1">{language === 'ar' ? 'البيانات الشخصية' : 'Personal Info'}</h3>
+              <p className="text-xs text-slate-500 mb-3">{language === 'ar' ? 'كود الموظف:' : 'Emp Code:'} {dashboardData?.employee?.emp_code || adminUser?.employee?.emp_code || '-'}</p>
+              <div className="w-full bg-slate-50 rounded-2xl p-3.5 text-xs text-slate-600 space-y-2">
+                <div className="flex justify-between"><span>{language === 'ar' ? 'الاسم:' : 'Name:'}</span> <span className="font-bold text-slate-800 truncate max-w-[120px]">{dashboardData?.employee?.emp_name || adminUser?.name}</span></div>
                 <div className="flex justify-between"><span>{language === 'ar' ? 'المسمى الوظيفي:' : 'Job:'}</span> <span className="font-medium text-slate-700">{dashboardData?.employee?.job_name || '-'}</span></div>
                 <div className="flex justify-between"><span>{language === 'ar' ? 'تاريخ التعيين:' : 'Start Date:'}</span> <span>{dashboardData?.employee?.emp_start_date || '-'}</span></div>
-                <div className="flex justify-between border-t border-slate-200/80 pt-2 font-bold"><span>{language === 'ar' ? 'الراتب الأساسي:' : 'Basic Salary:'}</span> <span className="text-emerald-600">{Number(dashboardData?.employee?.emp_salary || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span></div>
+                <div className="flex justify-between border-t border-slate-200/80 pt-1.5 font-bold"><span>{language === 'ar' ? 'الراتب الأساسي:' : 'Basic Salary:'}</span> <span className="text-emerald-600">{Number(dashboardData?.employee?.emp_salary || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span></div>
               </div>
             </div>
 
             {/* 2. Attendance Summary Card */}
             <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-100 flex flex-col items-center text-center hover:shadow-md transition-shadow">
-              <div className="w-16 h-16 rounded-2xl bg-blue-100 text-blue-600 flex items-center justify-center mb-4 shadow-inner">
-                <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+              <div className="w-14 h-14 rounded-2xl bg-blue-100 text-blue-600 flex items-center justify-center mb-3 shadow-inner">
+                <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
               </div>
-              <h3 className="font-bold text-slate-800 text-lg mb-1">{language === 'ar' ? 'الحضور للشهر الحالي' : 'Current Month Attendance'}</h3>
-              <p className="text-sm text-slate-500 mb-4">{language === 'ar' ? 'الشهر المالي:' : 'Finance Month:'} <span className="font-semibold text-slate-700">{dashboardData?.attendance?.current_month || '-'}</span></p>
-              <div className="w-full bg-slate-50 rounded-2xl p-4 text-sm text-slate-600 space-y-2.5">
+              <h3 className="font-bold text-slate-800 text-base mb-1">{language === 'ar' ? 'الحضور للشهر الحالي' : 'Attendance'}</h3>
+              <p className="text-xs text-slate-500 mb-3">{language === 'ar' ? 'الشهر المالي:' : 'Month:'} <span className="font-semibold text-slate-700">{dashboardData?.attendance?.current_month || '-'}</span></p>
+              <div className="w-full bg-slate-50 rounded-2xl p-3.5 text-xs text-slate-600 space-y-2">
                 <div className="flex justify-between"><span>{language === 'ar' ? 'أيام الحضور:' : 'Present Days:'}</span> <span className="font-bold text-emerald-600">{dashboardData?.attendance?.present || 0}</span></div>
                 <div className="flex justify-between"><span>{language === 'ar' ? 'أيام الغياب:' : 'Absent Days:'}</span> <span className="font-bold text-rose-500">{dashboardData?.attendance?.absent || 0}</span></div>
-                <div className="flex justify-between border-t border-slate-200/80 pt-2 font-medium"><span>{language === 'ar' ? 'الفترة:' : 'Period:'}</span> <span className="text-slate-500 text-xs">{dashboardData?.attendance?.current_year_month || '-'}</span></div>
+                <div className="flex justify-between border-t border-slate-200/80 pt-1.5 font-medium"><span>{language === 'ar' ? 'الفترة:' : 'Period:'}</span> <span className="text-slate-500 text-[11px]">{dashboardData?.attendance?.current_year_month || '-'}</span></div>
               </div>
             </div>
 
-            {/* 3. Financial Summary Card */}
+            {/* 3. Leave & Vacations Summary Card */}
             <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-100 flex flex-col items-center text-center hover:shadow-md transition-shadow">
-              <div className="w-16 h-16 rounded-2xl bg-amber-100 text-amber-600 flex items-center justify-center mb-4 shadow-inner">
-                <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+              <div className="w-14 h-14 rounded-2xl bg-indigo-100 text-indigo-600 flex items-center justify-center mb-3 shadow-inner">
+                <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
               </div>
-              <h3 className="font-bold text-slate-800 text-lg mb-1">{language === 'ar' ? 'البيانات المالية' : 'Financials'}</h3>
-              <p className="text-sm text-slate-500 mb-4">{language === 'ar' ? 'للشهر المالي الحالي' : 'For Current Month'}</p>
-              <div className="w-full bg-slate-50 rounded-2xl p-4 text-sm text-slate-600 space-y-2.5">
+              <h3 className="font-bold text-slate-800 text-base mb-1">{language === 'ar' ? 'رصيد الإجازات' : 'Leave Balance'}</h3>
+              <p className="text-xs text-slate-500 mb-3">{language === 'ar' ? 'للعام الميلادي الحالي' : 'Current Year'}</p>
+              <div className="w-full bg-slate-50 rounded-2xl p-3.5 text-xs text-slate-600 space-y-2">
+                <div className="flex justify-between"><span>{language === 'ar' ? 'الرصيد المتاح:' : 'Available:'}</span> <span className="font-black text-emerald-600">{dashboardData?.vacations?.remaining_days ?? 0} {t('days_unit')}</span></div>
+                <div className="flex justify-between"><span>{language === 'ar' ? 'المستهلك:' : 'Used:'}</span> <span className="font-bold text-blue-600">{dashboardData?.vacations?.used_days ?? 0} {t('days_unit')}</span></div>
+                <div className="flex justify-between border-t border-slate-200/80 pt-1.5 font-medium"><span>{language === 'ar' ? 'قيد المراجعة:' : 'Pending:'}</span> <span className="font-bold text-amber-600">{dashboardData?.vacations?.pending_days ?? 0} {t('days_unit')}</span></div>
+              </div>
+
+              <button
+                onClick={() => router.push('/portal/my-vacations')}
+                className="w-full mt-4 py-2.5 px-4 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold text-xs rounded-xl shadow-sm hover:shadow transition-all duration-200 flex items-center justify-center gap-2 active:scale-95 cursor-pointer"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                {language === 'ar' ? 'إجازاتي وتقديم طلب' : 'My Leaves & Requests'}
+              </button>
+            </div>
+
+            {/* 4. Financial Summary Card */}
+            <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-100 flex flex-col items-center text-center hover:shadow-md transition-shadow">
+              <div className="w-14 h-14 rounded-2xl bg-amber-100 text-amber-600 flex items-center justify-center mb-3 shadow-inner">
+                <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+              </div>
+              <h3 className="font-bold text-slate-800 text-base mb-1">{language === 'ar' ? 'البيانات المالية' : 'Financials'}</h3>
+              <p className="text-xs text-slate-500 mb-3">{language === 'ar' ? 'للشهر المالي الحالي' : 'For Current Month'}</p>
+              <div className="w-full bg-slate-50 rounded-2xl p-3.5 text-xs text-slate-600 space-y-2">
                 <div className="flex justify-between"><span>{language === 'ar' ? 'إجمالي المستحقات:' : 'Total Entitlements:'}</span> <span className="font-bold text-emerald-600">{Number(dashboardData?.financials?.total_benefits || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span></div>
                 <div className="flex justify-between"><span>{language === 'ar' ? 'إجمالي المستقطعات:' : 'Total Deductions:'}</span> <span className="font-bold text-rose-500">{Number(dashboardData?.financials?.total_deductions || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span></div>
-                <div className="flex justify-between border-t border-slate-200/80 pt-2 font-bold"><span>{language === 'ar' ? 'صافي الراتب:' : 'Net Salary:'}</span> <span className="text-indigo-600">{Number(dashboardData?.financials?.net_salary ?? ((dashboardData?.financials?.total_benefits || dashboardData?.employee?.emp_salary || 0) - (dashboardData?.financials?.total_deductions || 0))).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span></div>
+                <div className="flex justify-between border-t border-slate-200/80 pt-1.5 font-bold"><span>{language === 'ar' ? 'صافي الراتب:' : 'Net Salary:'}</span> <span className="text-indigo-600">{Number(dashboardData?.financials?.net_salary ?? ((dashboardData?.financials?.total_benefits || dashboardData?.employee?.emp_salary || 0) - (dashboardData?.financials?.total_deductions || 0))).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span></div>
               </div>
 
               {/* Details Action Button */}
               <button
                 onClick={handleViewSalaryDetails}
-                className="w-full mt-4 py-2.5 px-4 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white font-bold text-xs rounded-xl shadow-sm hover:shadow transition-all duration-200 flex items-center justify-center gap-2 active:scale-95"
+                className="w-full mt-4 py-2.5 px-4 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white font-bold text-xs rounded-xl shadow-sm hover:shadow transition-all duration-200 flex items-center justify-center gap-2 active:scale-95 cursor-pointer"
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
                 {language === 'ar' ? 'تفاصيل الراتب' : 'Salary Details'}

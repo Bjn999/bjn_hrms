@@ -7,11 +7,13 @@ import { useToast } from '@/contexts/ToastContext';
 import { useConfirm } from '@/contexts/ConfirmContext';
 import LoadingScreen from '@/components/ui/LoadingScreen';
 import { Occasion } from '@/types';
+import { usePermissions } from '@/hooks/usePermissions';
 
 export default function OccasionsPage() {
   const { t, language } = useLanguage();
   const { showToast } = useToast();
   const { confirm } = useConfirm();
+  const { hasPermission } = usePermissions();
   
   const [mounted, setMounted] = useState(false);
   const [data, setData] = useState<Occasion[]>([]);
@@ -70,14 +72,21 @@ export default function OccasionsPage() {
       });
     } else {
       setEditingId(null);
-      setFormData({ name: '', from_date: '', to_date: '', days_counter: '1', active: '1' });
+      setFormData({
+        name: '',
+        from_date: '',
+        to_date: '',
+        days_counter: '1',
+        active: '1'
+      });
     }
     setShowModal(true);
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
-    const updatedForm = { ...formData, [name]: value };
+    const updated = { ...formData, [name]: value };
+
     if (name === 'from_date' || name === 'to_date') {
       const from = name === 'from_date' ? value : formData.from_date;
       const to = name === 'to_date' ? value : formData.to_date;
@@ -86,24 +95,27 @@ export default function OccasionsPage() {
         const d2 = new Date(to);
         const diffTime = d2.getTime() - d1.getTime();
         const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
-        if (diffDays > 0) {
-          updatedForm.days_counter = diffDays.toString();
-        }
+        updated.days_counter = diffDays > 0 ? diffDays.toString() : '1';
       }
     }
-    setFormData(updatedForm);
+
+    setFormData(updated);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
       const token = localStorage.getItem('auth_token');
-      const url = modalType === 'add' ? `${process.env.NEXT_PUBLIC_API_URL || ''}/admin/occasions` : `${process.env.NEXT_PUBLIC_API_URL || ''}/admin/occasions/${editingId}`;
+      const url = modalType === 'add' 
+        ? `${process.env.NEXT_PUBLIC_API_URL || ''}/admin/occasions`
+        : `${process.env.NEXT_PUBLIC_API_URL || ''}/admin/occasions/${editingId}`;
+      const method = modalType === 'add' ? 'POST' : 'PUT';
+
       const res = await fetch(url, {
-        method: modalType === 'add' ? 'POST' : 'PUT',
+        method,
         headers: {
-          'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
           'Accept': 'application/json',
           'Accept-Language': language
         },
@@ -125,7 +137,7 @@ export default function OccasionsPage() {
   const handleDelete = async (id: number) => {
     const isConfirmed = await confirm({
       title: t('confirm_delete'),
-      description: 'هل أنت متأكد من رغبتك في حذف هذه المناسبة؟',
+      description: t('cannot_delete_used'),
       icon: 'danger'
     });
     if (!isConfirmed) return;
@@ -158,9 +170,11 @@ export default function OccasionsPage() {
     <div className="animate-fade-in-up pb-10">
       <div className="flex justify-between items-end mb-8">
         <h2 className="text-3xl font-black text-slate-800 tracking-tight">{t('occasions')}</h2>
-        <button onClick={() => handleOpenModal('add')} className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-6 py-2.5 rounded-xl font-black shadow-lg hover:shadow-indigo-500/30 transition-all hover:-translate-y-0.5 active:scale-95">
-          {t('add_occasion')}
-        </button>
+        {hasPermission('create_occasions') && (
+          <button onClick={() => handleOpenModal('add')} className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-6 py-2.5 rounded-xl font-black shadow-lg hover:shadow-indigo-500/30 transition-all hover:-translate-y-0.5 active:scale-95">
+            {t('add_occasion')}
+          </button>
+        )}
       </div>
 
       <div className="bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden relative">
@@ -194,12 +208,16 @@ export default function OccasionsPage() {
                   </span>
                 </td>
                 <td className="px-6 py-4 flex justify-center gap-2">
-                  <button onClick={() => handleOpenModal('edit', item)} className="text-amber-500 p-2 hover:bg-amber-50 rounded-lg transition-colors">
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
-                  </button>
-                  <button onClick={() => handleDelete(item.id)} className="text-rose-500 p-2 hover:bg-rose-50 rounded-lg transition-colors">
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
-                  </button>
+                  {hasPermission('edit_occasions') && (
+                    <button onClick={() => handleOpenModal('edit', item)} className="text-amber-500 p-2 hover:bg-amber-50 rounded-lg transition-colors">
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
+                    </button>
+                  )}
+                  {hasPermission('delete_occasions') && (
+                    <button onClick={() => handleDelete(item.id)} className="text-rose-500 p-2 hover:bg-rose-50 rounded-lg transition-colors">
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                    </button>
+                  )}
                 </td>
               </tr>
             ))}

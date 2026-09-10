@@ -9,6 +9,7 @@ import { useToast } from '@/contexts/ToastContext';
 import { useConfirm } from '@/contexts/ConfirmContext';
 import { FinanceMonth, Employee } from '@/types';
 import { createPortal } from 'react-dom';
+import { usePermissions } from '@/hooks/usePermissions';
 
 interface EmployeeSalaryItem {
   id: number;
@@ -36,6 +37,7 @@ export default function SalaryRecordsDetailPage() {
   const { t, language } = useLanguage();
   const { showToast } = useToast();
   const { confirm } = useConfirm();
+  const { hasPermission } = usePermissions();
   const params = useParams();
   const router = useRouter();
   const monthId = params?.id as string;
@@ -205,60 +207,62 @@ export default function SalaryRecordsDetailPage() {
         </div>
         <div className="flex items-center gap-3 flex-wrap">
           {/* Print Reports Dropdown */}
-          <div className="relative inline-block text-right">
-            <button
-              onClick={() => setShowPrintDropdown(!showPrintDropdown)}
-              className="bg-white border border-slate-200 text-slate-700 px-6 py-2.5 rounded-xl hover:bg-slate-50 transition-all font-bold flex items-center gap-2 shadow-sm focus:outline-none"
-            >
-              <svg className="w-5 h-5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
-              </svg>
-              {language === 'ar' ? 'طباعة التقارير' : 'Print Reports'}
-              <svg className="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-              </svg>
-            </button>
+          {hasPermission('view_salary_slips') && (
+            <div className="relative inline-block text-right">
+              <button
+                onClick={() => setShowPrintDropdown(!showPrintDropdown)}
+                className="bg-white border border-slate-200 text-slate-700 px-6 py-2.5 rounded-xl hover:bg-slate-50 transition-all font-bold flex items-center gap-2 shadow-sm focus:outline-none"
+              >
+                <svg className="w-5 h-5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+                </svg>
+                {language === 'ar' ? 'طباعة التقارير' : 'Print Reports'}
+                <svg className="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
 
-            {showPrintDropdown && (
-              <>
-                {/* Backdrop overlay to close dropdown on click outside */}
-                <div className="fixed inset-0 z-40" onClick={() => setShowPrintDropdown(false)}></div>
-                <div className={`absolute z-50 mt-2 w-80 rounded-2xl bg-white shadow-xl border border-slate-100 py-2 focus:outline-none ${
-                  language === 'ar' ? 'left-0 origin-top-left' : 'right-0 origin-top-right'
-                }`}>
-                  <Link
-                    href={`/portal/employee-salaries/print-detailed-table/${monthId}`}
-                    target="_blank"
-                    onClick={() => setShowPrintDropdown(false)}
-                    className="flex items-center gap-3 px-4 py-3 text-sm text-slate-700 hover:bg-slate-50 transition-colors font-bold"
-                  >
-                    <span className="w-2.5 h-2.5 rounded-full bg-violet-500"></span>
-                    <span>{language === 'ar' ? 'كشف رواتب تفصيلي (جدول كامل)' : 'Detailed Salaries (Full Table)'}</span>
-                  </Link>
-                  <Link
-                    href={`/portal/employee-salaries/print-summary-table/${monthId}`}
-                    target="_blank"
-                    onClick={() => setShowPrintDropdown(false)}
-                    className="flex items-center gap-3 px-4 py-3 text-sm text-slate-700 hover:bg-slate-50 transition-colors font-bold border-t border-slate-50"
-                  >
-                    <span className="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
-                    <span>{language === 'ar' ? 'كشف رواتب مختصر (جدول مجمل)' : 'Summarized Salaries (Brief Table)'}</span>
-                  </Link>
-                  <Link
-                    href={`/portal/employee-salaries/print-individual-slips/${monthId}`}
-                    target="_blank"
-                    onClick={() => setShowPrintDropdown(false)}
-                    className="flex items-center gap-3 px-4 py-3 text-sm text-slate-700 hover:bg-slate-50 transition-colors font-bold border-t border-slate-50"
-                  >
-                    <span className="w-2.5 h-2.5 rounded-full bg-blue-500"></span>
-                    <span>{language === 'ar' ? 'مسيرات الرواتب (صفحة لكل موظف)' : 'Individual Payslips (Page per Employee)'}</span>
-                  </Link>
-                </div>
-              </>
-            )}
-          </div>
+              {showPrintDropdown && (
+                <>
+                  {/* Backdrop overlay to close dropdown on click outside */}
+                  <div className="fixed inset-0 z-40" onClick={() => setShowPrintDropdown(false)}></div>
+                  <div className={`absolute z-50 mt-2 w-80 rounded-2xl bg-white shadow-xl border border-slate-100 py-2 focus:outline-none ${
+                    language === 'ar' ? 'left-0 origin-top-left' : 'right-0 origin-top-right'
+                  }`}>
+                    <Link
+                      href={`/portal/employee-salaries/print-detailed-table/${monthId}`}
+                      target="_blank"
+                      onClick={() => setShowPrintDropdown(false)}
+                      className="flex items-center gap-3 px-4 py-3 text-sm text-slate-700 hover:bg-slate-50 transition-colors font-bold"
+                    >
+                      <span className="w-2.5 h-2.5 rounded-full bg-violet-500"></span>
+                      <span>{language === 'ar' ? 'كشف رواتب تفصيلي (جدول كامل)' : 'Detailed Salaries (Full Table)'}</span>
+                    </Link>
+                    <Link
+                      href={`/portal/employee-salaries/print-summary-table/${monthId}`}
+                      target="_blank"
+                      onClick={() => setShowPrintDropdown(false)}
+                      className="flex items-center gap-3 px-4 py-3 text-sm text-slate-700 hover:bg-slate-50 transition-colors font-bold border-t border-slate-50"
+                    >
+                      <span className="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
+                      <span>{language === 'ar' ? 'كشف رواتب مختصر (جدول مجمل)' : 'Summarized Salaries (Brief Table)'}</span>
+                    </Link>
+                    <Link
+                      href={`/portal/employee-salaries/print-individual-slips/${monthId}`}
+                      target="_blank"
+                      onClick={() => setShowPrintDropdown(false)}
+                      className="flex items-center gap-3 px-4 py-3 text-sm text-slate-700 hover:bg-slate-50 transition-colors font-bold border-t border-slate-50"
+                    >
+                      <span className="w-2.5 h-2.5 rounded-full bg-blue-500"></span>
+                      <span>{language === 'ar' ? 'مسيرات الرواتب (صفحة لكل موظف)' : 'Individual Payslips (Page per Employee)'}</span>
+                    </Link>
+                  </div>
+                </>
+              )}
+            </div>
+          )}
 
-          {isMonthOpen && nothavesal > 0 && (
+          {isMonthOpen && nothavesal > 0 && hasPermission('create_salaries') && (
             <button
               onClick={() => setShowAddModal(true)}
               className="bg-gradient-to-r from-violet-500 to-purple-600 text-white px-6 py-2.5 rounded-xl hover:shadow-lg hover:shadow-violet-500/30 hover:-translate-y-0.5 transition-all duration-300 font-bold flex items-center gap-2"
@@ -348,19 +352,21 @@ export default function SalaryRecordsDetailPage() {
                     </td>
                     <td className="px-4 py-4">
                       <div className="flex items-center justify-center gap-1 flex-wrap">
-                        <Link
-                          href={`/portal/employee-salaries/details/${row.id}`}
-                          className="p-2 rounded-lg text-violet-500 hover:bg-violet-50 transition-colors"
-                          title={t('show_details')}
-                        >
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
-                        </Link>
-                        {canAct && !isStopped && (
+                        {hasPermission('view_salary_slips') && (
+                          <Link
+                            href={`/portal/employee-salaries/details/${row.id}`}
+                            className="p-2 rounded-lg text-violet-500 hover:bg-violet-50 transition-colors"
+                            title={t('show_details')}
+                          >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
+                          </Link>
+                        )}
+                        {canAct && !isStopped && hasPermission('archive_salaries') && (
                           <button onClick={() => handleArchive(row.id)} className="p-2 rounded-lg text-slate-500 hover:bg-slate-100 transition-colors" title={t('archive_salary')}>
                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" /></svg>
                           </button>
                         )}
-                        {canAct && (
+                        {canAct && hasPermission('edit_salaries') && (
                           <button onClick={() => handleStop(row.id, isStopped)} className={`p-2 rounded-lg transition-colors ${isStopped ? 'text-emerald-500 hover:bg-emerald-50' : 'text-amber-500 hover:bg-amber-50'}`} title={isStopped ? t('activate_salary') : t('temp_stop')}>
                             {isStopped ? (
                               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
@@ -369,7 +375,7 @@ export default function SalaryRecordsDetailPage() {
                             )}
                           </button>
                         )}
-                        {canAct && !isStopped && (
+                        {canAct && !isStopped && hasPermission('delete_salaries') && (
                           <button onClick={() => handleDelete(row.id)} className="p-2 rounded-lg text-rose-500 hover:bg-rose-50 transition-colors" title={t('delete_record')}>
                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
                           </button>

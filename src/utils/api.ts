@@ -20,8 +20,24 @@ export async function apiFetch(endpoint: string, options: RequestInit = {}) {
 
   if (response.status === 401) {
     localStorage.removeItem('auth_token');
+    localStorage.removeItem('auth_user');
     window.location.href = '/login';
     return;
+  }
+
+  if (response.status === 403) {
+    try {
+      const cloned = response.clone();
+      const body = await cloned.json();
+      if (body.code === 'SUBSCRIPTION_SUSPENDED' || body.grace_period_ended) {
+        localStorage.removeItem('auth_token');
+        localStorage.removeItem('auth_user');
+        window.location.href = '/login?reason=subscription_expired';
+        return;
+      }
+    } catch {
+      // Pass through if not json
+    }
   }
 
   return response;

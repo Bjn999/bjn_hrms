@@ -1,8 +1,10 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useLanguage } from '@/contexts/LanguageContext';
 import { useParams } from 'next/navigation';
+import { useLanguage } from '@/contexts/LanguageContext';
+import LoadingScreen from '@/components/ui/LoadingScreen';
+import AccessDenied from '@/components/ui/AccessDenied';
 import { FinanceMonth } from '@/types';
 
 interface PrintSalaryData {
@@ -89,15 +91,15 @@ export default function PrintSalarySlipPage() {
   }, [recordId]);
 
   if (loading) {
-    return <div className="min-h-screen flex items-center justify-center font-bold text-slate-500">{t('loading')}</div>;
+    return <LoadingScreen />;
   }
 
   if (!data) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center font-bold text-rose-500 gap-3 p-4">
-        <svg className="w-12 h-12 text-rose-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
-        <p className="text-lg">{errorMessage || t('failed_load_salary')}</p>
-      </div>
+      <AccessDenied 
+        message={errorMessage || (language === 'ar' ? 'ليس لديك الصلاحية للاطلاع على تفاصيل هذا الراتب' : 'You do not have permission to view this salary slip')}
+        description={language === 'ar' ? 'هذا السجل المالي مخصص للموظف المعني أو للمخولين في الإدارة والمالية فقط.' : 'This financial record is restricted to the respective employee or authorized administration.'}
+      />
     );
   }
 

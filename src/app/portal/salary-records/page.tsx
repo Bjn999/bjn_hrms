@@ -6,6 +6,7 @@ import LoadingScreen from '@/components/ui/LoadingScreen';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useToast } from '@/contexts/ToastContext';
 import { FinanceMonth, FinanceCalendar } from '@/types';
+import { usePermissions } from '@/hooks/usePermissions';
 
 interface SalaryRecordMonth extends FinanceMonth {
   start_date_for_pasma?: string;
@@ -36,6 +37,7 @@ const MONTHS_AR: Record<number, string> = {
 export default function SalaryRecordsPage() {
   const { t, language } = useLanguage();
   const { showToast } = useToast();
+  const { hasPermission } = usePermissions();
 
   const [data, setData] = useState<SalaryRecordMonth[]>([]);
   const [financeYears, setFinanceYears] = useState<FinanceCalendar[]>([]);
@@ -227,13 +229,17 @@ export default function SalaryRecordsPage() {
                         {action === 'view' && (
                           <>
                             <span className="font-bold text-emerald-600">{t('month_open')}</span>
-                            <button onClick={() => handleCloseMonth(item.id)} className="px-3 py-1.5 bg-rose-100 text-rose-700 hover:bg-rose-200 rounded-lg transition-colors font-bold text-xs">{t('close')}</button>
+                            {hasPermission('archive_salaries') && (
+                              <button onClick={() => handleCloseMonth(item.id)} className="px-3 py-1.5 bg-rose-100 text-rose-700 hover:bg-rose-200 rounded-lg transition-colors font-bold text-xs">{t('close')}</button>
+                            )}
                           </>
                         )}
                         {action === 'open' && (
                           <>
                             <span className="font-bold text-slate-500">{t('month_waiting_open')}</span>
-                            <button onClick={() => handleOpenMonthClick(item.id)} className="px-3 py-1.5 bg-violet-100 text-violet-700 hover:bg-violet-200 rounded-lg transition-colors font-bold text-xs">{t('open')}</button>
+                            {hasPermission('create_salaries') && (
+                              <button onClick={() => handleOpenMonthClick(item.id)} className="px-3 py-1.5 bg-violet-100 text-violet-700 hover:bg-violet-200 rounded-lg transition-colors font-bold text-xs">{t('open')}</button>
+                            )}
                           </>
                         )}
                         {action === 'archived' && (

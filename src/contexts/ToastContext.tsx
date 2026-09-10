@@ -18,12 +18,24 @@ const ToastContext = createContext<ToastContextType | undefined>(undefined);
 
 export function ToastProvider({ children }: { children: ReactNode }) {
   const [toasts, setToasts] = useState<Toast[]>([]);
+  const lastShownRef = useState<Map<string, number>>(() => new Map())[0];
 
   const showToast = (message: string, type: ToastType = 'success') => {
-    const id = Date.now();
+    const now = Date.now();
+    const key = `${type}:${message}`;
+    const lastTime = lastShownRef.get(key) || 0;
+    
+    // Prevent duplicate toast with identical message within 1.5 seconds
+    if (now - lastTime < 1500) {
+      return;
+    }
+    lastShownRef.set(key, now);
+
+    const id = now;
     setToasts((prev) => [...prev, { id, message, type }]);
     setTimeout(() => {
       setToasts((prev) => prev.filter((t) => t.id !== id));
+      lastShownRef.delete(key);
     }, 8000);
   };
 

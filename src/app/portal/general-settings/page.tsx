@@ -1,13 +1,17 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useToast } from '@/contexts/ToastContext';
+import { usePermissions } from '@/hooks/usePermissions';
 import LoadingScreen from '@/components/ui/LoadingScreen';
 
 export default function GeneralSettingsPage() {
+  const router = useRouter();
   const { showToast } = useToast();
   const { t, language } = useLanguage();
+  const { hasPermission, isLoaded } = usePermissions();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [formData, setFormData] = useState({
@@ -25,6 +29,12 @@ export default function GeneralSettingsPage() {
     sanctions_value_fourth_abcence: ''
   });
 
+  useEffect(() => {
+    if (isLoaded && !hasPermission('view_settings')) {
+      router.replace('/portal');
+    }
+  }, [isLoaded, hasPermission, router]);
+
   const fetchData = async () => {
     try {
       const token = localStorage.getItem('auth_token');
@@ -38,6 +48,8 @@ export default function GeneralSettingsPage() {
       const result = await res.json();
       if (result.status && result.data) {
         setFormData(result.data);
+      } else if (res.status === 403) {
+        router.replace('/portal');
       }
     } catch {
       showToast(t('fetch_failed'), 'error');
@@ -47,9 +59,11 @@ export default function GeneralSettingsPage() {
   };
 
   useEffect(() => {
-    fetchData();
+    if (isLoaded && hasPermission('view_settings')) {
+      fetchData();
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [language]);
+  }, [language, isLoaded, hasPermission]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -85,7 +99,7 @@ export default function GeneralSettingsPage() {
     }
   };
 
-  if (loading) return <LoadingScreen />;
+  if (loading || !hasPermission('view_settings')) return <LoadingScreen />;
 
   return (
     <div className="animate-fade-in-up pb-10">
@@ -232,12 +246,14 @@ export default function GeneralSettingsPage() {
           </div>
         </div>
 
-        <div className="flex justify-end gap-4 pt-4">
-          <button type="submit" disabled={saving} className="bg-gradient-to-r from-indigo-500 to-purple-600 text-white px-8 py-3.5 rounded-2xl font-bold hover:shadow-lg hover:shadow-indigo-500/30 hover:-translate-y-0.5 transition-all duration-300 active:scale-95 disabled:opacity-50 flex items-center gap-2">
-            {saving && <svg className="animate-spin w-5 h-5" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>}
-            {t('save')}
-          </button>
-        </div>
+        {hasPermission('edit_settings') && (
+          <div className="flex justify-end gap-4 pt-4">
+            <button type="submit" disabled={saving} className="bg-gradient-to-r from-indigo-500 to-purple-600 text-white px-8 py-3.5 rounded-2xl font-bold hover:shadow-lg hover:shadow-indigo-500/30 hover:-translate-y-0.5 transition-all duration-300 active:scale-95 disabled:opacity-50 flex items-center gap-2">
+              {saving && <svg className="animate-spin w-5 h-5" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>}
+              {t('save')}
+            </button>
+          </div>
+        )}
       </form>
     </div>
   );
