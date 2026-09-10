@@ -44,6 +44,8 @@ interface NotificationContextType {
 
 const NotificationContext = createContext<NotificationContextType | undefined>(undefined);
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
+
 export function NotificationProvider({ children }: { children: React.ReactNode }) {
   const { language } = useLanguage();
   const { showToast } = useToast();
@@ -91,7 +93,7 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
 
       if (!silent) setLoading(true);
       try {
-        const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || ''}/api/notifications`, {
+        const res = await fetch(`${API_URL}/notifications`, {
           headers: {
             Authorization: `Bearer ${token}`,
             Accept: 'application/json',
@@ -196,17 +198,31 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
     // Fetch user details to get exact user ID for private channel
     const setupEcho = async () => {
       try {
-        const userRes = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || ''}/api/user`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            Accept: 'application/json',
-          },
-        });
+        let userId: number | string | null = null;
+        const storedUser = localStorage.getItem('auth_user');
+        if (storedUser) {
+          try {
+            const parsed = JSON.parse(storedUser);
+            userId = parsed?.id;
+          } catch (e) {
+            // ignore
+          }
+        }
 
-        if (!userRes.ok || !isMounted) return;
-        const userData = await userRes.json();
-        const user = userData.data?.user || userData.user || userData.data;
-        const userId = user?.id;
+        if (!userId) {
+          const userRes = await fetch(`${API_URL}/user`, {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              Accept: 'application/json',
+            },
+          });
+
+          if (userRes.ok) {
+            const userData = await userRes.json();
+            const user = userData.data?.user || userData.user || userData.data;
+            userId = user?.id;
+          }
+        }
 
         if (!userId || !isMounted) return;
 
@@ -271,7 +287,7 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
       const token = localStorage.getItem('auth_token');
       if (!token) return;
 
-      const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || ''}/api/notifications/${id}/mark-as-read`, {
+      const res = await fetch(`${API_URL}/notifications/${id}/mark-as-read`, {
         method: 'POST',
         headers: {
           Authorization: `Bearer ${token}`,
@@ -304,7 +320,7 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
       const token = localStorage.getItem('auth_token');
       if (!token) return;
 
-      await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || ''}/api/notifications/mark-all-read`, {
+      await fetch(`${API_URL}/notifications/mark-all-read`, {
         method: 'POST',
         headers: {
           Authorization: `Bearer ${token}`,
@@ -325,7 +341,7 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
       const token = localStorage.getItem('auth_token');
       if (!token) return;
 
-      const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || ''}/api/notifications/${id}`, {
+      const res = await fetch(`${API_URL}/notifications/${id}`, {
         method: 'DELETE',
         headers: {
           Authorization: `Bearer ${token}`,
@@ -351,7 +367,7 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
       const token = localStorage.getItem('auth_token');
       if (!token) return false;
 
-      const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || ''}/api/notifications/test-broadcast`, {
+      const res = await fetch(`${API_URL}/notifications/test-broadcast`, {
         method: 'POST',
         headers: {
           Authorization: `Bearer ${token}`,

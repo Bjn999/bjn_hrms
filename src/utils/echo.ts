@@ -41,12 +41,12 @@ export function getEchoInstance(): Echo<any> | null {
     currentToken = token;
     window.Pusher = Pusher;
 
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:8000';
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
     const host = process.env.NEXT_PUBLIC_REVERB_HOST || '127.0.0.1';
-    const port = Number(process.env.NEXT_PUBLIC_REVERB_PORT) || 8080;
     const isHttps =
       process.env.NEXT_PUBLIC_REVERB_SCHEME === 'https' ||
       (typeof window !== 'undefined' && window.location.protocol === 'https:');
+    const port = Number(process.env.NEXT_PUBLIC_REVERB_PORT) || (isHttps ? 443 : 8080);
     const key = process.env.NEXT_PUBLIC_REVERB_APP_KEY || 'bjn_hrms_app_key';
 
     echoInstance = new Echo({
@@ -58,8 +58,8 @@ export function getEchoInstance(): Echo<any> | null {
       forceTLS: isHttps,
       encrypted: isHttps,
       disableStats: true,
-      enabledTransports: isHttps ? ['wss'] : ['ws'],
-      authEndpoint: `${baseUrl}/api/broadcasting/auth`,
+      enabledTransports: isHttps ? ['wss', 'ws'] : ['ws', 'wss'],
+      authEndpoint: `${apiUrl}/broadcasting/auth`,
       auth: {
         headers: {
           Authorization: `Bearer ${token}`,

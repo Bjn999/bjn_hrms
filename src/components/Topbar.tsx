@@ -63,7 +63,8 @@ export default function Topbar() {
     const token = localStorage.getItem('auth_token');
     if (token) {
       try {
-        await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || ''}/api/logout`, {
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
+        await fetch(`${apiUrl}/logout`, {
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${token}`,
